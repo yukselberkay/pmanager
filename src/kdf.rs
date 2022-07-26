@@ -1,6 +1,8 @@
 use argon2::{self, Config, ThreadMode, Variant, Version};
 use crate::password::Password;
-use rand::Rng;
+
+use rand::{Rng, SeedableRng};
+use rand_hc::Hc128Rng;
 
 pub struct Argon2 {
     variant: Variant,
@@ -17,7 +19,8 @@ impl Argon2 {
         let salt_len = 16;
 
         let ascii_chars: &str = "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKL1MNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz}{|~";
-        let mut rng = rand::thread_rng();
+        let mut rng = Hc128Rng::from_entropy();
+
         
         let mut salt: String = String::new();
         for _ in 0..salt_len {

@@ -1,4 +1,5 @@
-use rand::Rng;
+use rand::{Rng, SeedableRng};
+use rand_hc::Hc128Rng;
 
 pub struct Password {
     pub pass: String,
@@ -22,7 +23,7 @@ impl Password {
         }
 
         let ascii_chars: &str = "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKL1MNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz}{|~";
-        let mut rng = rand::thread_rng();
+        let mut rng = Hc128Rng::from_entropy();
 
         let mut pass: String = String::new();
         for _ in 0..pass_len {

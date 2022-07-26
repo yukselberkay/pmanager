@@ -1,7 +1,7 @@
 mod password;
 mod kdf;
 mod aes_gcm;
-mod rnd;
+mod test;
 
 use clap::{Arg, App};
 use md5;
@@ -124,7 +124,7 @@ fn main() {
 
         let plaintext = aes_gcm::AesGcm256::decrypt(key_value, String::from("unique nonce"), ciphertext);
 
-        rnd::test();
+        test::test();
 
         dbg!(&plaintext);
 

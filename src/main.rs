@@ -1,15 +1,14 @@
 mod password;
 mod kdf;
 mod aes_gcm;
-
-
-use rand::SeedableRng;
-use rand_hc::Hc128Rng;
+mod rnd;
 
 use clap::{Arg, App};
 use md5;
 use dirs;
 use std::fs;
+use std::env;
+use std::process::exit;
 
 use dialoguer::{Input, Password};
 
@@ -92,7 +91,13 @@ fn main() {
             .long("edit-entry")
             .help("Edit entry from database"))
         .get_matches();
-    
+
+    let arg_count: usize = env::args().count();
+    if arg_count > 2 {
+        println!("Only one argument is allowed at a time.");
+        exit(1);
+    }
+
     if matches.is_present("initdb") {
         init_db();
     }
@@ -119,7 +124,10 @@ fn main() {
 
         let plaintext = aes_gcm::AesGcm256::decrypt(key_value, String::from("unique nonce"), ciphertext);
 
+        rnd::test();
+
         dbg!(&plaintext);
+
     }
 
 }

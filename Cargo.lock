@@ -539,6 +539,7 @@ dependencies = [
  "rand_hc",
  "rpassword",
  "rust-argon2",
+ "toml",
 ]
 
 [[package]]

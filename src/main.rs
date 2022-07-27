@@ -3,15 +3,11 @@ mod password;
 mod kdf;
 mod aes_gcm;
 mod args;
+mod init;
 mod test;
 
 use md5;
 use dialoguer::{Input, Password};
-
-fn init() {
-    dbg!("init function has run.");
-}
-
 
 fn add_entry() {
     let appname: String = Input::new()
@@ -46,9 +42,9 @@ fn get_entry() {
 }
 
 fn main() {
-    init();
+    init::init();
     let args = args::arg_parse();
-    //db::configuration();
+    db::configuration();
 
     if args.is_present("init_db") {
         db::init_db();

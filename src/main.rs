@@ -42,9 +42,14 @@ fn get_entry() {
 }
 
 fn main() {
-    init::init();
+
+    //test::test();
+    let db_location = String::from("/tmp");
+    init::init(db_location);
+
+    // init::init();
     let args = args::arg_parse();
-    db::configuration();
+    //db::configuration();
 
     if args.is_present("init_db") {
         db::init_db();

@@ -7,7 +7,7 @@ use std::collections::HashMap;
 pub fn configuration() {
     let settings = Config::builder()
         // Add in `./Settings.toml`
-        .add_source(config::File::with_name("Settings"))
+        .add_source(config::File::with_name("servers"))
         // Add in settings from the environment (with a prefix of APP)
         // Eg.. `APP_DEBUG=1 ./target/app` would set the `debug` key
         .add_source(config::Environment::with_prefix("APP"))
@@ -15,7 +15,8 @@ pub fn configuration() {
         .unwrap();
 
     
-    println!("{:?}", settings.try_deserialize::<HashMap<String, String>>().unwrap());
+    //println!("{:?}", settings.try_deserialize::<HashMap<String, String>>().unwrap());
+    dbg!(settings);
 }
 
 

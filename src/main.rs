@@ -4,6 +4,7 @@ mod kdf;
 mod aes_gcm;
 mod args;
 mod init;
+mod util;
 mod test;
 
 use md5;
@@ -44,7 +45,10 @@ fn get_entry() {
 fn main() {
 
     //test::test();
-    let db_location = String::from("/tmp");
+
+    // TODO this will be supplied by user if not supplied
+    // default parameters will be used.
+    let db_location = String::from("/tmp/");
     init::init(db_location);
 
     // init::init();

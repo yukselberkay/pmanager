@@ -2,6 +2,10 @@ use std::fs;
 use std::io::prelude::*;
 use std::path::Path;
 
+use std::path::PathBuf;
+
+use dirs;
+
 pub fn create_file(path_string: &String, data: String) {
     let path = Path::new(&path_string);
     
@@ -21,9 +25,16 @@ pub fn create_file(path_string: &String, data: String) {
     }
 }
 
-pub fn create_dir(dir_path: String) {
+pub fn create_dir(dir_path: &String) {
     match fs::create_dir_all(&dir_path) {
         Err(why) => panic!("could not create dirs {}: {}", &dir_path, why),
         Ok(_) => println!("directories created successfully : {}.",dir_path),
     };
+}
+
+pub fn get_homedir() -> PathBuf {
+    let homedir = dirs::home_dir()
+        .expect("could not get home directory");    
+
+    homedir
 }

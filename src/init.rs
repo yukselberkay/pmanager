@@ -31,9 +31,19 @@ impl Config {
 pub fn init(db_location: String) {
     dbg!("init function has run.");
 
+    let mut pmanager_folder = util::get_homedir().into_os_string()
+        .into_string().unwrap();
+
+    
+    let dirname = "/.pmanager";
+    pmanager_folder.insert_str(pmanager_folder.len(), dirname);
+    util::create_dir(&pmanager_folder);
+    dbg!(&pmanager_folder);
+    dbg!(dirname);
+    
+
     // TODO "/tmp/" path will be changed with default home path.
-    let config = Config::new("pmanager_config.json",
-        String::from("/tmp/"));
+    let config = Config::new("/pmanager_config.json",pmanager_folder);
 
     let db_pmanager = Database {
         name: String::from("db.pmanager"),

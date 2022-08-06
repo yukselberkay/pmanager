@@ -44,14 +44,13 @@ fn get_entry() {
 
 fn main() {
 
-    //test::test();
+    test::test();
 
     // TODO this will be supplied by user if not supplied
     // default parameters will be used.
     let db_location = String::from("/tmp/");
     init::init(db_location);
 
-    // init::init();
     let args = args::arg_parse();
     //db::configuration();
 

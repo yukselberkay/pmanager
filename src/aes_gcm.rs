@@ -29,7 +29,7 @@ impl AesGcm256 {
         ciphertext
     }
 
-    pub fn decrypt(keyval: String, nonce_val: String, ciphertext: Vec<u8>) -> Vec<u8>{
+    pub fn decrypt(keyval: &String, nonce_val: String, ciphertext: Vec<u8>) -> Vec<u8>{
         //key must be 32 bytes.
         
         let key = Key::from_slice(keyval.as_bytes());

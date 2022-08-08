@@ -29,7 +29,7 @@ impl Argon2 {
             let character: char = ascii_char_byte as char;
             salt.push(character);
         }
-        salt
+        String::from("1111111111111111")
     }
  
     pub fn derive_key(pass: Password) -> String {        

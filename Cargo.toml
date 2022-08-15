@@ -23,3 +23,6 @@ byteorder = "1.4.3"
 crc = "3.0.0"
 clap = { version = "3.2.17", features = ["cargo"] }
 
+[lib]
+name = "libkv"
+path = "src/lib.rs"

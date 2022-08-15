@@ -1,3 +1,7 @@
+/**
+ * log structured append only key value database
+ */
+
 use dirs;
 use std::fs::File;
 use std::fs;
@@ -5,6 +9,19 @@ use std::fs;
 use serde_json;
 
 use crate::util;
+
+use libkv::KeyValDb;
+
+pub fn db_test(get: &String) {
+    dbg!(get);
+
+    let db_name = "db.pmanager";
+
+    let path = std::path::Path::new(&db_name);
+
+    // let mut store = 
+
+}
 
 pub fn create_db(config_path: String) {
     // parse and read the config file and get db name and db location
@@ -32,7 +49,7 @@ pub fn create_db(config_path: String) {
     final_path.push_str(name);
     
     dbg!(&final_path);
-    util::create_file(&final_path, String::from("\n"));
+    util::create_file(&final_path, &String::from("\n"));
     
 }
 

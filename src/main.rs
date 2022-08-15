@@ -12,6 +12,8 @@ use std::str::from_utf8;
 use md5;
 use dialoguer::{Input, Password};
 
+use crate::db::db_test;
+
 fn add_entry() {
     let appname: String = Input::new()
         .with_prompt("Application name ")
@@ -53,45 +55,39 @@ fn main() {
     //let db_location = String::from("/tmp/");
     //init::init(db_location);
 
-    let args = args::arg_parse();
+    let matches = args::arg_parse();
     //db::configuration();
 
-    if args.is_present("init_db") {
-        db::init_db();
-    }
-
-    if args.is_present("add_entry") {
-        dbg!("add_entry argument supplied.");
-        //add_entry();
-    }
-
-    if args.is_present("get_entry") {
-        dbg!("get_entry argument supplied");
-        //get_entry();
-    }
+    match matches.subcommand() {
+        Some(("debug", _)) => {
+            println!("debug subcommand supplied.");            
+            //let rand_pass = password::Password::genpass(32);
+            let pass = String::from("secret_pass");
+            let rand_pass = password::Password { pass: (pass), len: (11) };
+            let derived_key: String = kdf::Argon2::derive_key(rand_pass);
         
-    if args.is_present("debug") {
-        dbg!("Debug mode enabled");
-        //let rand_pass = password::Password::genpass(32);
-        let pass = String::from("secret_pass");
-        let rand_pass = password::Password { pass: (pass), len: (11) };
-        let derived_key: String = kdf::Argon2::derive_key(rand_pass);
+            // key must be 32 bytes
+            // should we use md5 here ??
+            let digest = md5::compute(derived_key.as_bytes());
+            let key_value = format!("{:x}", digest);
+            dbg!(&key_value);
+        
+            let ciphertext = aes_gcm::AesGcm256::encrypt(&key_value, String::from("unique nonce"), String::from("facebook:  12314322342321"));
+            // util::create_file(&String::from("db.pmanager"), ciphertext);
+            dbg!(&ciphertext);
     
-        // key must be 32 bytes
-        // should we use md5 here ??
-        let digest = md5::compute(derived_key.as_bytes());
-        let key_value = format!("{:x}", digest);
-        dbg!(&key_value);
+            let deciphered_values = aes_gcm::AesGcm256::decrypt(&key_value, String::from("unique nonce"), ciphertext);
     
-        let ciphertext = aes_gcm::AesGcm256::encrypt(&key_value, String::from("unique nonce"), String::from("facebook:  12314322342321"));
-        util::create_file(&String::from("db.pmanager"), ciphertext);
-        dbg!(&ciphertext);
-
-        let deciphered_values = aes_gcm::AesGcm256::decrypt(&key_value, String::from("unique nonce"), ciphertext);
-
-        let plain_text = from_utf8(&deciphered_values).unwrap();
-        dbg!(&plain_text);
-
+            let plain_text = from_utf8(&deciphered_values).unwrap();
+            dbg!(&plain_text);
+    
+        },
+        Some(("db_test", sub_matches)) => {
+            let get = sub_matches.get_one::<String>("get").unwrap();
+            dbg!(get);
+            
+        }
+        _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     }
-
+    
 }

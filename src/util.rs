@@ -8,7 +8,7 @@ use dirs;
 
 // TODO make this a generic function so it can write any data 
 // inside a file regardless of its type.
-pub fn create_file(path_string: &String, data: String) {
+pub fn create_file(path_string: &String, data: &String) {
     let path = Path::new(&path_string);
     
     // display is a helper struct for safely printing paths

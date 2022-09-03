@@ -8,9 +8,9 @@
 - [x] Decryption.
 - [x] Argument Parsing.
 - [x] Key derivation function.
-- [ ] Key value database.
+- [x] Key value database.
 - [x] Secure random number generation for password creation.
-- [ ] Dockerize.
+- [x] Dockerize.
 - [ ] Tests.
 - [x] Configuration system.
 

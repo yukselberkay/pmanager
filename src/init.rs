@@ -59,5 +59,5 @@ pub fn init(db_location: String) {
     let config_path = format!("{}{}",config.path, config.name);
     Config::create_config(&config_path, as_json);
 
-    db::create_db(config_path);
+    db::init_db(config_path);
 }

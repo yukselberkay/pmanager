@@ -10,7 +10,7 @@ use serde_json;
 
 use crate::util;
 
-use libkv::KeyValDb;
+use libkvdb::KeyValDb;
 
 pub fn db_test(get: &String) {
     dbg!(get);
@@ -23,7 +23,7 @@ pub fn db_test(get: &String) {
 
 }
 
-pub fn create_db(config_path: String) {
+pub fn init_db(config_path: String) {
     // parse and read the config file and get db name and db location
     // create db.pmanager according to config file
     //let config_path = "pmanager_config.json";
@@ -51,25 +51,4 @@ pub fn create_db(config_path: String) {
     dbg!(&final_path);
     util::create_file(&final_path, &String::from("\n"));
     
-}
-
-pub fn init_db() {
-    //get home directory
-    let dir_name = ".pmanager";
-    let home_dir = dirs::home_dir().unwrap();
-    let db_dir = home_dir.join(dir_name);
-    if !db_dir.exists() {
-        fs::create_dir(&db_dir).unwrap();
-        println!("Database directory created to: {}", db_dir.display());
-    } else {
-        println!("Database directory already exists: {}", db_dir.display());
-        // create file
-        let db_file = db_dir.join("db.pmanager");
-        if !db_file.exists() {
-            fs::File::create(&db_file).unwrap();
-            println!("Database file created to: {}", db_file.display());
-        } else {
-            println!("Database file already exists: {}", db_file.display());
-        }
-    }
 }

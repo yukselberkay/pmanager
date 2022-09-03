@@ -10,41 +10,16 @@ mod test;
 use std::str::from_utf8;
 
 use md5;
-use dialoguer::{Input, Password};
 
-use crate::db::db_test;
+use args::Subcommands;
+use libkvdb::KeyValueDB;
+use std::path::Path;
 
-fn add_entry() {
-    let appname: String = Input::new()
-        .with_prompt("Application name ")
-        .interact()
-        .unwrap();
 
-    dbg!(&appname);
+//use dialoguer::{Input, Password};
 
-    let username: String = Input::new()
-        .with_prompt("Username ")
-        .interact()
-        .unwrap();
+//use crate::db::db_test;
 
-    dbg!(&username);
-
-    let password = Password::new()
-        .with_prompt("Password ")
-        .with_confirmation("Confirm password", "Passwords mismatching")
-        .interact()
-        .unwrap();
-
-    dbg!(&password);
-}
-
-fn get_entry() {
-    let password = Password::new()
-        .with_prompt("Enter your master password ")
-        .with_confirmation("Confirm master password", "Passwords mismatching")
-        .interact()
-        .unwrap();
-}
 
 fn main() {
 
@@ -52,42 +27,64 @@ fn main() {
 
     // TODO this will be supplied by user if not supplied
     // default parameters will be used.
-    //let db_location = String::from("/tmp/");
-    //init::init(db_location);
-
-    let matches = args::arg_parse();
+    let db_location = String::from(".");
+    init::init(db_location);
     //db::configuration();
 
-    match matches.subcommand() {
-        Some(("debug", _)) => {
-            println!("debug subcommand supplied.");            
-            //let rand_pass = password::Password::genpass(32);
-            let pass = String::from("secret_pass");
-            let rand_pass = password::Password { pass: (pass), len: (11) };
-            let derived_key: String = kdf::Argon2::derive_key(rand_pass);
-        
-            // key must be 32 bytes
-            // should we use md5 here ??
-            let digest = md5::compute(derived_key.as_bytes());
-            let key_value = format!("{:x}", digest);
-            dbg!(&key_value);
-        
-            let ciphertext = aes_gcm::AesGcm256::encrypt(&key_value, String::from("unique nonce"), String::from("facebook:  12314322342321"));
-            // util::create_file(&String::from("db.pmanager"), ciphertext);
-            dbg!(&ciphertext);
+    let args = args::arg_parser();
+
+    let fname = args.path;
+    let path = Path::new(&fname);
+
+    let mut store = KeyValueDB::open(path).expect("unable to open file");
+    store.load().expect("unable to load data");
     
-            let deciphered_values = aes_gcm::AesGcm256::decrypt(&key_value, String::from("unique nonce"), ciphertext);
-    
-            let plain_text = from_utf8(&deciphered_values).unwrap();
-            dbg!(&plain_text);
-    
+    match &args.command {
+        Some(Subcommands::Get { key }) => {
+            println!("Get {}", key);
+            let result = store.get(key.as_bytes()).unwrap().unwrap();
+            println!("{:?}", result);
         },
-        Some(("db_test", sub_matches)) => {
-            let get = sub_matches.get_one::<String>("get").unwrap();
-            dbg!(get);
-            
+        Some(Subcommands::Insert { key, value }) => {
+            println!("Insert {} -> {}", key, value);
+            store.insert(key.as_bytes(), value.as_bytes()).unwrap();
+        },
+        Some(Subcommands::Delete { key }) => {
+            println!("Delete -> {}", key);
+        },
+        Some(Subcommands::Update { key, value }) => {
+            println!("update -> {}, {}", key, value);
+        },
+        Some(Subcommands::Find { target }) => {
+            let res = store.find(target.as_bytes()).unwrap();
+            println!("{:?}", res);
         }
-        _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
+        // prints out generated help message automatically
+        None => {}        
     }
     
+}
+
+fn debug() {
+    dbg!("debug subcommand supplied.");
+    //let rand_pass = password::Password::genpass(32);
+    let pass = String::from("secret_pass");
+    let rand_pass = password::Password { pass: (pass), len: (11) };
+    let derived_key: String = kdf::Argon2::derive_key(rand_pass);
+
+    // key must be 32 bytes
+    // should we use md5 here ??
+    let digest = md5::compute(derived_key.as_bytes());
+    let key_value = format!("{:x}", digest);
+    dbg!(&key_value);
+
+    let ciphertext = aes_gcm::AesGcm256::encrypt(&key_value, String::from("unique nonce"), String::from("facebook:  12314322342321"));
+    // util::create_file(&String::from("db.pmanager"), ciphertext);
+    dbg!(&ciphertext);
+
+    let deciphered_values = aes_gcm::AesGcm256::decrypt(&key_value, String::from("unique nonce"), ciphertext);
+
+    let plain_text = from_utf8(&deciphered_values).unwrap();
+    dbg!(&plain_text);
+
 }

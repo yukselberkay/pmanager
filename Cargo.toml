@@ -20,9 +20,10 @@ serde = "1.0.142"
 serde_json = "1.0.83"
 serde_derive = "1.0.142"
 byteorder = "1.4.3"
-crc = "3.0.0"
-clap = { version = "3.2.17", features = ["cargo"] }
+crc = "1.7"
+clap = { version = "3.2.20", features = ["derive"] }
+
 
 [lib]
-name = "libkv"
+name = "libkvdb"
 path = "src/lib.rs"

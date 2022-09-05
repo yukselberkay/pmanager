@@ -40,3 +40,13 @@ pub fn get_homedir() -> PathBuf {
 
     homedir
 }
+
+pub fn does_exists(file: &String) -> bool {
+    let path = Path::new(file);
+
+    if path.exists() {
+        return true
+    }
+
+    false
+}

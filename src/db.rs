@@ -10,8 +10,6 @@ use serde_json;
 
 use crate::util;
 
-use libkvdb::KeyValDb;
-
 pub fn db_test(get: &String) {
     dbg!(get);
 

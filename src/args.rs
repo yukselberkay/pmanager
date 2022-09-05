@@ -2,15 +2,19 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 pub struct Cli {
-    /// Db file path
-    #[clap(short, long)]
-    pub path: String,
+    #[clap(short, long, action)]
+    pub debug: bool,
     #[clap(subcommand)]
     pub command: Option<Subcommands>, // not required argument
 }
 
 #[derive(Subcommand)]
 pub enum Subcommands {
+    /// Init pmanager.
+    Init {
+        #[clap(short, long, action)]
+        db_path: String,
+    },
     /// Get value by key from database
     Get {
         #[clap(short, long, action)]
@@ -19,27 +23,27 @@ pub enum Subcommands {
     /// Insert a key value pair to database
     Insert {
         #[clap(short, long, action)]
+        /// Key to be inserted
         key: String,
+        /// Value to be inserted with key pair.
         #[clap(short, long, action)]
         value: String
     },
     /// Delete a key value pair from database
     Delete {
         #[clap(short, long, action)]
+        /// The key to be deleted associated with the record
         key: String,
     },
     /// Update a record from database
     Update {
         #[clap(short, long, action)]
+        /// The key to be updated associated with the record
         key: String,
         #[clap(short, long, action)]
+        /// The value to be updated associated with the record
         value: String
     },
-    /// test argument
-    Find {
-        #[clap(short, long, action)]
-        target: String,
-    }
 }
 
 pub fn arg_parser() -> Cli{

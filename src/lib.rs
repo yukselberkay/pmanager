@@ -8,7 +8,7 @@ use std::fs::{File, OpenOptions};
 use std::io;
 use std::io::prelude::*;
 use std::io::{BufReader, BufWriter, SeekFrom};
-use std::path::Path;
+use std::path::PathBuf;
 
 use crc::crc32;
 
@@ -31,7 +31,7 @@ pub struct KeyValuePair {
 }
 
 impl KeyValueDB {
-    pub fn open(path: &Path) -> io::Result<Self> {
+    pub fn open(path: &PathBuf) -> io::Result<Self> {
         let f = OpenOptions::new()
             .read(true)
             .write(true)

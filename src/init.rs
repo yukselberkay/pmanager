@@ -1,4 +1,6 @@
-use serde_derive::{Serialize};
+use std::path::PathBuf;
+
+use serde_derive::{Serialize, Deserialize};
 use serde_json;
 
 use crate::util;
@@ -9,10 +11,10 @@ struct Config {
     path: String,
 }
 
-#[derive(Serialize)]
-struct Database {
+#[derive(Serialize, Deserialize)]
+pub struct Database {
     name: String,
-    path: String,
+    pub path: PathBuf,
 }
 
 impl Config {
@@ -28,13 +30,23 @@ impl Config {
     }
 }
 
-pub fn init(db_location: String) {
+pub fn init(mut db_location: PathBuf) {
     dbg!("init function has run.");
 
+    if db_location == PathBuf::from("."){
+        let default_location = util::get_homedir().join("/.pmanager");
+        db_location = default_location;
+    }
+ 
     let mut pmanager_folder = util::get_homedir().into_os_string()
         .into_string().unwrap();
 
-    
+    // not working need to change this
+    // if util::does_exists(&pmanager_folder) { 
+    //     dbg!("pmanager folder exists, skipping init.");
+    //     return
+    // }
+
     let dirname = "/.pmanager";
     pmanager_folder.insert_str(pmanager_folder.len(), dirname);
     util::create_dir(&pmanager_folder);
@@ -57,7 +69,8 @@ pub fn init(db_location: String) {
     };
 
     let config_path = format!("{}{}",config.path, config.name);
+    dbg!(&config_path);
     Config::create_config(&config_path, as_json);
 
-    db::init_db(config_path);
+    //db::init_db(config_path);
 }

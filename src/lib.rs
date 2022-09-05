@@ -8,7 +8,8 @@ use std::fs::{File, OpenOptions};
 use std::io;
 use std::io::prelude::*;
 use std::io::{BufReader, BufWriter, SeekFrom};
-use std::path::PathBuf;
+use std::path::Path;
+use std::str;
 
 use crc::crc32;
 
@@ -31,7 +32,7 @@ pub struct KeyValuePair {
 }
 
 impl KeyValueDB {
-    pub fn open(path: &PathBuf) -> io::Result<Self> {
+    pub fn open(path: &Path) -> io::Result<Self> {
         let f = OpenOptions::new()
             .read(true)
             .write(true)
@@ -81,11 +82,16 @@ impl KeyValueDB {
             // this becomes the value of the index.
             let position = f.seek(SeekFrom::Current(0))?;
 
+            //dbg!(&position);
+
             // read a record in the file at its current position
             let maybe_kv = KeyValueDB::process_record(&mut f);
 
             let kv = match maybe_kv {
-                Ok(kv) => kv,
+                Ok(kv) => {
+                    //dbg!(&kv);
+                    kv
+                },
                 Err(err) => {
                     match err.kind() {
                         io::ErrorKind::UnexpectedEof => {
@@ -97,9 +103,28 @@ impl KeyValueDB {
             };
 
             self.index.insert(kv.key, position);
+            //dbg!(&self.index);
         }
 
         Ok(())
+    }
+
+    pub fn list(
+        &mut self,
+    ) {
+        for (key, val) in &self.index {
+
+
+            let mut f = BufReader::new(&mut self.f);
+            f.seek(SeekFrom::Start(*val)).unwrap();
+            let kv: KeyValuePair = KeyValueDB::process_record(&mut f).unwrap();
+   
+
+            let s_key = String::from_utf8_lossy(key);
+            let s_val = String::from_utf8_lossy(&kv.value);
+
+            println!("key -> {:?} pos -> {:?}", s_key, s_val);
+        }
     }
 
     pub fn get(
@@ -125,37 +150,6 @@ impl KeyValueDB {
         let kv = KeyValueDB::process_record(&mut f)?;
 
         Ok(kv)
-    }
-
-    pub fn find(
-        &mut self,
-        target: &ByteStr 
-    ) -> io::Result<Option<(u64, ByteString)>> {
-        let mut f = BufReader::new(&mut self.f);
-
-        let mut found: Option<(u64, ByteString)> = None;
-
-        loop {
-            let position = f.seek(SeekFrom::Current(0))?;
-
-            let maybe_kv = KeyValueDB::process_record(&mut f);
-            let kv = match maybe_kv {
-                Ok(kv) => kv,
-                Err(err) => {
-                    match err.kind() {
-                        io::ErrorKind::UnexpectedEof => {
-                            break;
-                        }
-                        _ => return Err(err),
-                    }
-                }
-            };
-
-            if kv.key == target {
-                found = Some((position, kv.value));
-            }
-        }
-        Ok(found)
     }
 
     pub fn insert(&mut self,

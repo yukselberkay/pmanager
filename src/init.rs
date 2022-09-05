@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use serde_derive::{Serialize, Deserialize};
 use serde_json;
@@ -41,11 +42,11 @@ pub fn init(mut db_location: PathBuf) {
     let mut pmanager_folder = util::get_homedir().into_os_string()
         .into_string().unwrap();
 
-    // not working need to change this
-    // if util::does_exists(&pmanager_folder) { 
-    //     dbg!("pmanager folder exists, skipping init.");
-    //     return
-    // }
+    let b: bool = PathBuf::from_str(&pmanager_folder).unwrap().is_dir();
+    if b == true {
+        dbg!(".pmanager directory exists skipping init process");
+        return ;
+    }
 
     let dirname = "/.pmanager";
     pmanager_folder.insert_str(pmanager_folder.len(), dirname);

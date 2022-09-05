@@ -16,7 +16,7 @@ use args::Subcommands;
 use libkvdb::KeyValueDB;
 use std::path::Path;
 
-use crate::init::Database;
+use crate::init::DbFile;
 
 use std::fs::File;
 
@@ -130,14 +130,7 @@ fn get_db_location() -> PathBuf {
         Ok(file) => file,
     };
 
-    // let v: Value = serde_json::from_str(&s).unwrap();
-
-    // let db_path = &v["path"];
-    // let x = serde_json::to_string(db_path).unwrap();
-    
-    // let res = PathBuf::from_str(&x).unwrap();
-
-    let d: Database = serde_json::from_str(&s).unwrap();
+    let d: DbFile = serde_json::from_str(&s).unwrap();
 
     dbg!(&d.path);
     

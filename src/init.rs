@@ -13,7 +13,7 @@ struct Config {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Database {
+pub struct DbFile {
     name: String,
     pub path: PathBuf,
 }
@@ -58,7 +58,7 @@ pub fn init(mut db_location: PathBuf) {
     // TODO "/tmp/" path will be changed with default home path.
     let config = Config::new("/pmanager_config.json",pmanager_folder);
 
-    let db_pmanager = Database {
+    let db_pmanager = DbFile {
         name: String::from("db.pmanager"),
         path: db_location,
     };

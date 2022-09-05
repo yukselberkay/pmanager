@@ -10,7 +10,7 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Subcommands {
-    /// Init pmanager.
+    /// Initialize pmanager
     Init {
         #[clap(short, long, action)]
         db_path: String,
@@ -25,7 +25,7 @@ pub enum Subcommands {
         #[clap(short, long, action)]
         /// Key to be inserted
         key: String,
-        /// Value to be inserted with key pair.
+        /// Value to be inserted with key pair
         #[clap(short, long, action)]
         value: String
     },
@@ -44,6 +44,7 @@ pub enum Subcommands {
         /// The value to be updated associated with the record
         value: String
     },
+    /// Lists every record in the database
     List {}
 }
 

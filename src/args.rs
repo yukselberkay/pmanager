@@ -44,6 +44,7 @@ pub enum Subcommands {
         /// The value to be updated associated with the record
         value: String
     },
+    List {}
 }
 
 pub fn arg_parser() -> Cli{

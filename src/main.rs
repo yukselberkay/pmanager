@@ -63,6 +63,9 @@ fn main() {
             dbg!("init path is -> {}", &db_path);
             init::init(path);
         },
+        Some(Subcommands::List {  }) => {
+            println!("list argument is supplied.");
+        },
         // if required arguments not supplied, 
         //prints out generated help message automatically
         None => {}        
@@ -71,8 +74,8 @@ fn main() {
     let path = get_db_location();
     dbg!(&path);
 
-    let mut store = KeyValueDB::open(&path).expect("unable to open file");
-    store.load().expect("unable to load data");
+    //let mut store = KeyValueDB::open(&path).expect("unable to open file");
+    //store.load().expect("unable to load data");
 }
 
 fn debug() {
@@ -112,6 +115,7 @@ fn get_db_location() -> PathBuf {
 
     dbg!(&conf_path);
 
+    // make pathbuf printable.
     let display = conf_path.display();
 
     // parse the configuration and get the db location
@@ -120,7 +124,7 @@ fn get_db_location() -> PathBuf {
         Err(why) => panic!("could not open : {} {}", display, why),
         Ok(file) => file,
     };
-    
+   
     match file.read_to_string(&mut s) {
         Err(why) => panic!("could not read as string: {} {}", display, why),
         Ok(file) => file,

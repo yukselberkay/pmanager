@@ -16,6 +16,7 @@ use args::Subcommands;
 use libkvdb::KeyValueDB;
 use std::path::Path;
 
+use crate::password::Password;
 use crate::init::DbFile;
 
 use std::fs::File;
@@ -38,19 +39,28 @@ fn main() {
 
     let args = args::arg_parser();
     
+
+
+    let path = get_db_location();
+    dbg!(&path);
+
     if args.debug == true {
-        debug();
-    } 
+        //debug();
+        test::test(&path);
+    }
+
+    let mut store = KeyValueDB::open(&path).expect("unable to open file");
+    store.load().expect("unable to load data");
 
     match &args.command {
         Some(Subcommands::Get { key }) => {
             println!("Get {}", key);
-            //let result = store.get(key.as_bytes()).unwrap().unwrap();
-            //println!("{:?}", result);
+            let result = store.get(key.as_bytes()).unwrap().unwrap();
+            println!("{:?}", result);
         },
         Some(Subcommands::Insert { key, value }) => {
             println!("Insert {} -> {}", key, value);
-            //store.insert(key.as_bytes(), value.as_bytes()).unwrap();
+            store.insert(key.as_bytes(), value.as_bytes()).unwrap();
         },
         Some(Subcommands::Delete { key }) => {
             println!("Delete -> {}", key);
@@ -65,24 +75,20 @@ fn main() {
         },
         Some(Subcommands::List {  }) => {
             println!("list argument is supplied.");
+            store.list();
         },
         // if required arguments not supplied, 
         //prints out generated help message automatically
         None => {}        
     }
-    
-    let path = get_db_location();
-    dbg!(&path);
-
-    //let mut store = KeyValueDB::open(&path).expect("unable to open file");
-    //store.load().expect("unable to load data");
 }
 
 fn debug() {
     dbg!("debug subcommand supplied.");
     //let rand_pass = password::Password::genpass(32);
     let pass = String::from("secret_pass");
-    let rand_pass = password::Password { pass: (pass), len: (11) };
+    let pass_len = pass.len();
+    let rand_pass = Password::new(pass, pass_len);
     let derived_key: String = kdf::Argon2::derive_key(rand_pass);
 
     // key must be 32 bytes
@@ -91,11 +97,13 @@ fn debug() {
     let key_value = format!("{:x}", digest);
     dbg!(&key_value);
 
-    let ciphertext = aes_gcm::AesGcm256::encrypt(&key_value, String::from("unique nonce"), String::from("facebook:  12314322342321"));
+    let ciphertext = aes_gcm::AesGcm256::encrypt(&key_value, 
+        String::from("unique nonce"), String::from("facebook:  12314322342321"));
     // util::create_file(&String::from("db.pmanager"), ciphertext);
     dbg!(&ciphertext);
 
-    let deciphered_values = aes_gcm::AesGcm256::decrypt(&key_value, String::from("unique nonce"), ciphertext);
+    let deciphered_values = aes_gcm::AesGcm256::decrypt(&key_value, 
+        String::from("unique nonce"), ciphertext);
 
     let plain_text = from_utf8(&deciphered_values).unwrap();
     dbg!(&plain_text);

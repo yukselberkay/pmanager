@@ -27,7 +27,7 @@ impl Config {
     }
 
     fn create_config(path_string: &String, json_data: String) {
-        util::create_file(path_string, &json_data);
+        util::create_file_with_data(path_string, &json_data);
     }
 }
 

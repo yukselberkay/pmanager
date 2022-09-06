@@ -14,13 +14,30 @@ impl AesGcm256 {
         }
     }
 
-    pub fn encrypt(keyval: &String, nonce: String, plaintext: String) -> Vec<u8>{
+    pub fn encrypt_bytes(
+        keyval: &String,
+        nonce: String,
+        data: Vec<u8>
+    ) -> Vec<u8> {
         //key must be 32 bytes.
+        let key = Key::from_slice(keyval.as_bytes());        
+        let cipher = Aes256Gcm::new(key);
+        
+        // 96 bits, unique per value
+        let nonce = Nonce::from_slice(nonce.as_bytes());
+
+        let ciphertext = cipher.encrypt(nonce, data.as_ref())
+            .unwrap();
+
+        ciphertext
+    }
+
+
+    pub fn encrypt(keyval: &String, nonce: String, plaintext: String) -> Vec<u8>{
         
         let key = Key::from_slice(keyval.as_bytes());
         let cipher = Aes256Gcm::new(key);
     
-        // 96 bits, unique per value
         let nonce = Nonce::from_slice(nonce.as_bytes());
     
         let ciphertext = cipher.encrypt(nonce, plaintext.as_bytes().as_ref())

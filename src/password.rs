@@ -7,7 +7,7 @@ pub struct Password {
 }
 
 impl Password {
-    fn new(pass: String, len: usize) -> Password {
+    pub fn new(pass: String, len: usize) -> Password {
         Password {
             pass: String::from(pass),
             len: len,

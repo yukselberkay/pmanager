@@ -47,6 +47,6 @@ pub fn init_db(config_path: String) {
     final_path.push_str(name);
     
     dbg!(&final_path);
-    util::create_file(&final_path, &String::from("\n"));
+    util::create_file_with_data(&final_path, &String::from("\n"));
     
 }

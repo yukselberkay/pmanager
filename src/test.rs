@@ -7,8 +7,24 @@ use crate::kdf::Argon2;
 use crate::aes_gcm::AesGcm256;
 use crate::util;
 use md5;
+#[derive(Debug)]
+pub struct Xy {
+    pub x: Vec<u8>,
+    pub y: (Vec<u8>, Vec<u8>)
+}
 
-pub fn test(db_location: &PathBuf) {
+
+impl Xy {
+    pub fn test(x: Vec<u8>, y: (Vec<u8>, Vec<u8>)) -> Xy {
+        Xy { x: (x), y: (y) }
+    }
+}
+
+
+
+
+
+pub fn test_tmp(db_location: &PathBuf) {
     dbg!("test function is called");
 
     let password = String::from("master_pass");

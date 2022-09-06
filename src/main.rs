@@ -7,11 +7,13 @@ mod init;
 mod util;
 mod test;
 
-use std::{str::{from_utf8, FromStr}, path::PathBuf, io::Read};
+use std::{str::{from_utf8, FromStr},io::Read};
+use std::path::PathBuf;
 
 use md5;
 
 
+use crate::test::Xy;
 use args::Subcommands;
 use libkvdb::KeyValueDB;
 use std::path::Path;
@@ -39,18 +41,10 @@ fn main() {
 
     let args = args::arg_parser();
     
-
-
     let path = get_db_location();
     dbg!(&path);
-
-    if args.debug == true {
-        //debug();
-        test::test(&path);
-    }
-
     let mut store = KeyValueDB::open(&path).expect("unable to open file");
-    store.load().expect("unable to load data");
+    store.load().expect("unable to load data"); 
 
     match &args.command {
         Some(Subcommands::Get { key }) => {
@@ -60,7 +54,7 @@ fn main() {
         },
         Some(Subcommands::Insert { key, value }) => {
             println!("Insert {} -> {}", key, value);
-            store.insert(key.as_bytes(), value.as_bytes()).unwrap();
+           // store.insert(key.as_bytes(), value.as_bytes()).unwrap();
         },
         Some(Subcommands::Delete { key }) => {
             println!("Delete -> {}", key);
@@ -75,12 +69,24 @@ fn main() {
         },
         Some(Subcommands::List {  }) => {
             println!("list argument is supplied.");
-            store.list();
+            //store.list();
         },
         // if required arguments not supplied, 
         //prints out generated help message automatically
         None => {}        
     }
+
+    if args.debug == true {
+        //debug();
+        //test::test(&path);
+        let v1: Vec<u8> = vec![1,3,2];
+        let v2: Vec<u8> = vec![1,3,2];
+        let v3: Vec<u8> = vec![1,3,2,5];
+        let res = Xy::test(v1, (v2,v3));
+        dbg!(res.y.1);
+    }
+
+
 }
 
 fn debug() {
@@ -140,7 +146,11 @@ fn get_db_location() -> PathBuf {
 
     let d: DbFile = serde_json::from_str(&s).unwrap();
 
-    dbg!(&d.path);
+    let mut db_location: PathBuf = PathBuf::new();
+    db_location.push(d.path);
+    db_location.push(d.name);
+
+    dbg!(&db_location);
     
-    d.path
+    db_location
 }

@@ -14,7 +14,7 @@ struct Config {
 
 #[derive(Serialize, Deserialize)]
 pub struct DbFile {
-    name: String,
+    pub name: PathBuf,
     pub path: PathBuf,
 }
 
@@ -42,11 +42,11 @@ pub fn init(mut db_location: PathBuf) {
     let mut pmanager_folder = util::get_homedir().into_os_string()
         .into_string().unwrap();
 
-    let b: bool = PathBuf::from_str(&pmanager_folder).unwrap().is_dir();
-    if b == true {
-        dbg!(".pmanager directory exists skipping init process");
-        return ;
-    }
+    // let b: bool = PathBuf::from_str(&pmanager_folder).unwrap().is_dir();
+    // if b == true {
+    //     dbg!(".pmanager directory exists skipping init process");
+    //     return ;
+    // }
 
     let dirname = "/.pmanager";
     pmanager_folder.insert_str(pmanager_folder.len(), dirname);
@@ -59,13 +59,15 @@ pub fn init(mut db_location: PathBuf) {
     let config = Config::new("/pmanager_config.json",pmanager_folder);
 
     let db_pmanager = DbFile {
-        name: String::from("db.pmanager"),
+        name: PathBuf::from_str("db.pmanager").unwrap(),
         path: db_location,
     };
 
+    let display = db_pmanager.name.display();
+
     // converting db_pmanager variable to json encoded string.
     let as_json: String = match serde_json::to_string(&db_pmanager) {
-        Err(why) => panic!("could not encode {} to json : {}", db_pmanager.name, why),
+        Err(why) => panic!("could not encode {} to json : {}", display, why),
         Ok(as_json) => as_json,
     };
 

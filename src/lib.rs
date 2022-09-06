@@ -66,6 +66,7 @@ impl KeyValueDB {
             );
         }
         let value = data.split_off(key_len as usize);
+        dbg!(&value);
         let key = data;
         Ok(KeyValuePair{key, value})
     }

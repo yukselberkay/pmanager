@@ -65,7 +65,7 @@ fn main() {
         },
         Some(Subcommands::List {  }) => {
             println!("list argument is supplied.");
-            //store.list();
+            list(&path);
         },
         // if required arguments not supplied, 
         //prints out generated help message automatically
@@ -131,4 +131,21 @@ fn get(
     println!("{:?}", result);
 
     util::remove_file_from_path(f);
+}
+
+fn list(
+    db_location: &PathBuf
+) {
+    let master_password = util::get_password();
+    dbg!(&master_password);
+
+    // try to decrypt the db 
+    let f = db::decrypt_db(db_location, master_password);
+
+    let mut store = KeyValueDB::open(&f).expect("unable to open file");
+    store.load().expect("unable to load data");
+    let result = store.list();
+    println!("{:?}", result);
+
+    util::remove_file_from_path(f); 
 }

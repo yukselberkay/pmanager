@@ -1,3 +1,8 @@
+/**
+ * kdf.rs
+ * Functions responsible for deriving a key.
+ */
+
 use argon2::{self, Config, ThreadMode, Variant, Version};
 use crate::password::Password;
 

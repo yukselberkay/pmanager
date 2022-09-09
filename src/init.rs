@@ -1,3 +1,8 @@
+/**
+ * init.rs
+ * Initializes the db.
+ */
+
 use std::path::PathBuf;
 use std::str::FromStr;
 

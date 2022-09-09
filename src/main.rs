@@ -1,3 +1,7 @@
+/**
+ * main.rs
+*/
+
 mod db;
 mod password;
 mod kdf;

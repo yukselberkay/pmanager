@@ -1,3 +1,8 @@
+/**
+ * util.rs
+ * Utility functions to avoid code reuse.
+ */
+
 use std::fs::{remove_file, read, create_dir_all, File};
 use std::path::{Path,PathBuf};
 use std::io::prelude::*;

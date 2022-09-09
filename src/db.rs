@@ -1,4 +1,7 @@
-
+/**
+ * db.rs
+ * Database file/io related operations.
+ */
 
 use dirs;
 use std::{fs::File, io::Read};

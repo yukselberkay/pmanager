@@ -1,3 +1,8 @@
+/**
+ * args.rs
+ * Parses command line arguments.
+ */
+
 use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]

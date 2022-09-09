@@ -1,3 +1,8 @@
+/**
+ * aes_gcm.rs
+ * Handles the encryption and the decryption of data using aes-gcm256.
+*/
+
 use std::process::exit;
 
 use aes_gcm::{Aes256Gcm, Key, Nonce};

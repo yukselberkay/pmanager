@@ -1,7 +1,7 @@
 /**
  * lib.rs
- * log structured hash table database backend.
- */
+ * Log structured append only database backend.
+*/
 
 use std::collections::HashMap;
 use std::fs::{File, OpenOptions};

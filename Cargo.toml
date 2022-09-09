@@ -11,9 +11,7 @@ rust-argon2 = "1.0.0"
 rand_hc = "0.3.1"
 aes-gcm = "0.9.4"
 md5 = "0.7.0"
-rpassword = "6.0.1"
 dirs = "4.0.0"
-dialoguer = "0.10.1"
 config = "0.13.1"
 toml = "0.5.9"
 serde = "1.0.142"
@@ -22,7 +20,7 @@ serde_derive = "1.0.142"
 byteorder = "1.4.3"
 crc = "1.7"
 clap = { version = "3.2.20", features = ["derive"] }
-
+rpassword = "7.0.0"
 
 [lib]
 name = "libkvdb"

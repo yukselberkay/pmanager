@@ -1,7 +1,11 @@
-use std::fs::{read, create_dir_all, File};
+use std::fs::{remove_file, read, create_dir_all, File};
 use std::path::{Path,PathBuf};
 use std::io::prelude::*;
 use dirs;
+use rpassword;
+use std::io;
+
+use crate::DbFile;
 
 // TODO make this a generic function so it can write any data 
 // inside a file regardless of its type.
@@ -24,7 +28,7 @@ pub fn create_file_with_data(path_string: &String, data: &String) {
     }
 }
 
-pub fn create_empty_file(path: PathBuf) -> File{
+pub fn create_empty_file(path: &PathBuf) -> File{
     let display = path.display();
 
     let file = match File::create(&path) {
@@ -65,4 +69,55 @@ pub fn get_homedir() -> PathBuf {
         .expect("could not get home directory");    
 
     homedir
+}
+
+// TODO: refactoring
+// parse pmanager config to get the db file location
+pub fn get_db_location() -> PathBuf {
+    let mut conf_path = PathBuf::new();
+
+    let home_dir = get_homedir();
+
+    conf_path.push(home_dir);
+    conf_path.push(".pmanager");
+    conf_path.push("pmanager_config");
+    conf_path.set_extension("json");
+
+    dbg!(&conf_path);
+
+    // make pathbuf printable.
+    let display = conf_path.display();
+
+    // parse the configuration and get the db location
+    let mut s = String::new();
+    let mut file = match File::open(&conf_path) {
+        Err(why) => panic!("could not open : {} {}", display, why),
+        Ok(file) => file,
+    };
+   
+    match file.read_to_string(&mut s) {
+        Err(why) => panic!("could not read as string: {} {}", display, why),
+        Ok(file) => file,
+    };
+
+    let d: DbFile = serde_json::from_str(&s).unwrap();
+
+    let mut db_location: PathBuf = PathBuf::new();
+    db_location.push(d.path);
+    db_location.push(d.name);
+
+    dbg!(&db_location);
+    
+    db_location
+}
+
+pub fn get_password() -> String {
+    let password = rpassword::prompt_password("Enter your master password: ")
+        .expect("An error occured while getting password input");
+
+    password
+}
+
+pub fn remove_file_from_path(path: PathBuf) {
+    remove_file(path).expect("Failed to remove the file.");
 }

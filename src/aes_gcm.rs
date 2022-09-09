@@ -1,3 +1,5 @@
+use std::process::exit;
+
 use aes_gcm::{Aes256Gcm, Key, Nonce};
 use aes_gcm::aead::{Aead, NewAead};
 
@@ -46,7 +48,7 @@ impl AesGcm256 {
         ciphertext
     }
 
-    pub fn decrypt(keyval: &String, nonce_val: String, ciphertext: Vec<u8>) -> Vec<u8>{
+    pub fn decrypt(keyval: &String, nonce_val: String, ciphertext: Vec<u8>) -> Result<Vec<u8>, aes_gcm::Error>{
         //key must be 32 bytes.
         
         let key = Key::from_slice(keyval.as_bytes());
@@ -55,9 +57,8 @@ impl AesGcm256 {
         // 96 bits, unique per value
         let nonce = Nonce::from_slice(nonce_val.as_bytes());
     
-        let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
-            .expect("decryption failure");
-   
+        let plaintext = cipher.decrypt(nonce, ciphertext.as_ref());
+
         plaintext
     }
 }

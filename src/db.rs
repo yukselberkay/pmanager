@@ -1,52 +1,49 @@
-/**
- * log structured append only key value database
- */
+
 
 use dirs;
-use std::fs::File;
+use std::{fs::File, io::Read};
 use std::fs;
+use std::path::{PathBuf, Path};
+use std::process::exit;
 
 use serde_json;
 
+use crate::kdf::Argon2;
+use crate::password::Password;
 use crate::util;
+use crate::aes_gcm::AesGcm256;
 
-pub fn db_test(get: &String) {
-    dbg!(get);
+pub fn decrypt_db(
+    db_location: &PathBuf,
+    password: String,
+) -> PathBuf {
+    let len = password.len();
+    let master_password = Password::new(password, len);
+    let derived_key: String = Argon2::derive_key(master_password);
 
-    let db_name = "db.pmanager";
+    let digest = md5::compute(derived_key.as_bytes());
+    let key_value = format!("{:x}", digest);
 
-    let path = std::path::Path::new(&db_name);
+    let bytes = util::read_as_bytes(&db_location);
 
-    // let mut store = 
-
-}
-
-pub fn init_db(config_path: String) {
-    // parse and read the config file and get db name and db location
-    // create db.pmanager according to config file
-    //let config_path = "pmanager_config.json";
-
-    let file = match File::open(&config_path) {
-        Err(why) => panic!("could not open file {}: {}", config_path, why),
-        Ok(file) => file,
+    let decrypted_data = match AesGcm256::decrypt(
+        &key_value,
+        String::from("unique nonce"),
+        bytes
+    ) {
+        Ok(decrypted_data) => decrypted_data,
+        Err(why) => {
+            eprintln!(
+                "Cannot decrypt the db with the given master password -> {}", why
+            );
+            exit(1);
+        }
     };
 
-    let json: serde_json::Value = match serde_json::from_reader(file) {
-        Err(why) => panic!("could not parse json {}: {}", config_path, why),
-        Ok(json) => json,
-    };
-
-    let name = json.get("name").expect("could not get index name.")
-        .as_str().unwrap();
-        
-    let path = json.get("path").expect("could not get index path.")
-        .as_str().unwrap();
-
-    let mut final_path = String::new();
-    final_path.push_str(path);
-    final_path.push_str(name);
+    // dirty solution, refactor here make filename random.
+    let tmp_path = PathBuf::from(String::from("/tmp/.db.dec"));
+    let f = util::create_empty_file(&tmp_path);
+    util::write_bytes_to_file(f, &decrypted_data);
     
-    dbg!(&final_path);
-    util::create_file_with_data(&final_path, &String::from("\n"));
-    
+    tmp_path
 }

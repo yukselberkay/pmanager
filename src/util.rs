@@ -118,6 +118,6 @@ pub fn get_password() -> String {
     password
 }
 
-pub fn remove_file_from_path(path: PathBuf) {
+pub fn remove_file_from_path(path: &PathBuf) {
     remove_file(path).expect("Failed to remove the file.");
 }

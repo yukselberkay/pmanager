@@ -50,7 +50,7 @@ pub fn test_tmp(db_location: &PathBuf) {
         &key_value,
         String::from("unique nonce"),
         bytes
-    );
+    ).unwrap();
 
     dbg!(&ciphertext);
 

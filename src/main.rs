@@ -39,24 +39,26 @@ fn main() {
 
     let args = args::arg_parser();
     
-    let path = util::get_db_location();
-    dbg!(&path);
+    let db_location = util::get_db_location();
+    dbg!(&db_location);
     //let mut store = KeyValueDB::open(&path).expect("unable to open file");
     //store.load().expect("unable to load data"); 
 
     match &args.command {
         Some(Subcommands::Get { key }) => {
-            get(&key, &path);
+            get(&key, &db_location);
         },
         Some(Subcommands::Insert { key, value }) => {
             println!("Insert {} -> {}", key, value);
-           // store.insert(key.as_bytes(), value.as_bytes()).unwrap();
+            insert(&db_location, key, value);
         },
         Some(Subcommands::Delete { key }) => {
             println!("Delete -> {}", key);
+            delete(&db_location, key);
         },
         Some(Subcommands::Update { key, value }) => {
             println!("update -> {}, {}", key, value);
+            update(&db_location, key, value);
         },
         Some(Subcommands::Init { db_path }) => {
             let path = PathBuf::from(db_path);
@@ -65,7 +67,7 @@ fn main() {
         },
         Some(Subcommands::List {  }) => {
             println!("list argument is supplied.");
-            list(&path);
+            list(&db_location);
         },
         // if required arguments not supplied, 
         //prints out generated help message automatically
@@ -74,7 +76,7 @@ fn main() {
 
     if args.debug == true {
         //debug();
-        test::test_tmp(&path);
+        test::test_tmp(&db_location);
         // let v1: Vec<u8> = vec![1,3,2];
         // let v2: Vec<u8> = vec![1,3,2];
         // let v3: Vec<u8> = vec![1,3,2,5];
@@ -119,18 +121,22 @@ fn get(
     dbg!(&master_password);
 
     // try to decrypt the db 
-    let f = db::decrypt_db(db_location, master_password);
+    let f = db::decrypt_db(db_location, &master_password);
     // let x = util::read_as_bytes(&f);
     // dbg!(x);
     
 
     println!("Get {}", key);
-    let mut store = KeyValueDB::open(&f).expect("unable to open file");
-    store.load().expect("unable to load data");
+
+    let mut store = KeyValueDB::open(&f)
+        .expect("unable to open file");
+    store.load()
+        .expect("unable to load data");
+
     let result = store.get(key.as_bytes()).unwrap().unwrap();
     println!("{:?}", result);
 
-    util::remove_file_from_path(f);
+    util::remove_file_from_path(&f);
 }
 
 fn list(
@@ -140,12 +146,103 @@ fn list(
     dbg!(&master_password);
 
     // try to decrypt the db 
-    let f = db::decrypt_db(db_location, master_password);
+    let f = db::decrypt_db(db_location, &master_password);
 
-    let mut store = KeyValueDB::open(&f).expect("unable to open file");
-    store.load().expect("unable to load data");
+    let mut store = KeyValueDB::open(&f)
+        .expect("unable to open file");
+    store.load()
+        .expect("unable to load data");
+
     let result = store.list();
     println!("{:?}", result);
 
-    util::remove_file_from_path(f); 
+    util::remove_file_from_path(&f); 
+}
+
+fn insert(
+    db_location: &PathBuf,
+    key: &String,
+    value: &String
+) {
+    let master_password = util::get_password();
+    let tmp_path = db::decrypt_db(db_location, &master_password);
+    
+    let mut store = KeyValueDB::open(&tmp_path)
+        .expect("unable to open file");
+    store.load()
+        .expect("unable to load data");
+        
+    store.insert(key.as_bytes(), value.as_bytes())
+        .expect("Unable to insert to directory");
+
+    //remove previous database file
+    util::remove_file_from_path(db_location);
+
+    let f = util::create_empty_file(db_location);
+
+    let encrypted_tmp_file = db::encrypt_db(&tmp_path, &master_password);
+    
+    let encrypted_data = util::read_as_bytes(&encrypted_tmp_file);
+
+    util::write_bytes_to_file(f, &encrypted_data);
+
+    util::remove_file_from_path(&tmp_path); 
+}
+
+fn delete(
+    db_location: &PathBuf,
+    key: &String
+) {
+    let master_password = util::get_password();
+    let tmp_path = db::decrypt_db(db_location, &master_password);
+    
+    let mut store = KeyValueDB::open(&tmp_path)
+        .expect("unable to open file");
+    store.load()
+        .expect("unable to load data");
+        
+    store.delete(key.as_bytes()).unwrap();
+
+    //remove previous database file
+    util::remove_file_from_path(db_location);
+
+    let f = util::create_empty_file(db_location);
+
+    let encrypted_tmp_file = db::encrypt_db(&tmp_path, &master_password);
+    
+    let encrypted_data = util::read_as_bytes(&encrypted_tmp_file);
+
+    util::write_bytes_to_file(f, &encrypted_data);
+
+    util::remove_file_from_path(&tmp_path)
+}
+
+fn update(
+    db_location: &PathBuf,
+    key: &String,
+    value: &String
+) {
+    let master_password = util::get_password();
+    let tmp_path = db::decrypt_db(db_location, &master_password);
+    
+    let mut store = KeyValueDB::open(&tmp_path)
+        .expect("unable to open file");
+    store.load()
+        .expect("unable to load data");
+        
+    store.update(key.as_bytes(), value.as_bytes())
+        .expect("Unable to insert to directory");
+
+    //remove previous database file
+    util::remove_file_from_path(db_location);
+
+    let f = util::create_empty_file(db_location);
+
+    let encrypted_tmp_file = db::encrypt_db(&tmp_path, &master_password);
+    
+    let encrypted_data = util::read_as_bytes(&encrypted_tmp_file);
+
+    util::write_bytes_to_file(f, &encrypted_data);
+
+    util::remove_file_from_path(&tmp_path); 
 }

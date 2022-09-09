@@ -10,7 +10,6 @@ use serde_derive::{Serialize, Deserialize};
 use serde_json;
 
 use crate::util;
-use crate::db;
 
 // pub fn init_db(config_path: String) {
 //     // parse and read the config file and get db name and db location

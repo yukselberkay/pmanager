@@ -3,13 +3,8 @@
  * Database file/io related operations.
  */
 
-use dirs;
-use std::{fs::File, io::Read};
-use std::fs;
-use std::path::{PathBuf, Path};
+use std::path::{PathBuf};
 use std::process::exit;
-
-use serde_json;
 
 use crate::kdf::Argon2;
 use crate::password::Password;

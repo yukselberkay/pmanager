@@ -8,7 +8,6 @@ use std::path::{Path,PathBuf};
 use std::io::prelude::*;
 use dirs;
 use rpassword;
-use std::io;
 
 use crate::DbFile;
 

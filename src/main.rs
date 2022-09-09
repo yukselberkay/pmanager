@@ -11,22 +11,14 @@ mod init;
 mod util;
 mod test;
 
-use std::{str::{from_utf8, FromStr},io::Read};
 use std::path::PathBuf;
 
-use md5;
 
-use crate::test::Xy;
 use args::Subcommands;
 use libkvdb::KeyValueDB;
-use std::path::Path;
 
 use crate::password::Password;
 use crate::init::DbFile;
-
-use std::fs::File;
-
-use serde_json::{Result, Value};
 
 //use dialoguer::{Input, Password};
 
@@ -91,31 +83,31 @@ fn main() {
 
 }
 
-fn debug() {
-    // dbg!("debug subcommand supplied.");
-    // //let rand_pass = password::Password::genpass(32);
-    // let pass = String::from("secret_pass");
-    // let pass_len = pass.len();
-    // let rand_pass = Password::new(pass, pass_len);
-    // let derived_key: String = kdf::Argon2::derive_key(rand_pass);
+// fn debug() {
+//     // dbg!("debug subcommand supplied.");
+//     // //let rand_pass = password::Password::genpass(32);
+//     // let pass = String::from("secret_pass");
+//     // let pass_len = pass.len();
+//     // let rand_pass = Password::new(pass, pass_len);
+//     // let derived_key: String = kdf::Argon2::derive_key(rand_pass);
 
-    // // key must be 32 bytes
-    // // should we use md5 here ??
-    // let digest = md5::compute(derived_key.as_bytes());
-    // let key_value = format!("{:x}", digest);
-    // dbg!(&key_value);
+//     // // key must be 32 bytes
+//     // // should we use md5 here ??
+//     // let digest = md5::compute(derived_key.as_bytes());
+//     // let key_value = format!("{:x}", digest);
+//     // dbg!(&key_value);
 
-    // let ciphertext = aes_gcm::AesGcm256::encrypt(&key_value, 
-    //     String::from("unique nonce"), String::from("facebook:  12314322342321"));
-    // // util::create_file(&String::from("db.pmanager"), ciphertext);
-    // dbg!(&ciphertext);
+//     // let ciphertext = aes_gcm::AesGcm256::encrypt(&key_value, 
+//     //     String::from("unique nonce"), String::from("facebook:  12314322342321"));
+//     // // util::create_file(&String::from("db.pmanager"), ciphertext);
+//     // dbg!(&ciphertext);
 
-    // let deciphered_values = aes_gcm::AesGcm256::decrypt(&key_value, 
-    //     String::from("unique nonce"), ciphertext);
+//     // let deciphered_values = aes_gcm::AesGcm256::decrypt(&key_value, 
+//     //     String::from("unique nonce"), ciphertext);
 
-    // let plain_text = from_utf8(&deciphered_values).unwrap();
-    // dbg!(&plain_text);
-}
+//     // let plain_text = from_utf8(&deciphered_values).unwrap();
+//     // dbg!(&plain_text);
+// }
 
 fn get(
     key: &String,

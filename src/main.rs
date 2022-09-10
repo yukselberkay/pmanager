@@ -13,7 +13,6 @@ mod test;
 
 use std::path::PathBuf;
 
-
 use args::Subcommands;
 use libkvdb::KeyValueDB;
 
@@ -122,7 +121,6 @@ fn get(
     // let x = util::read_as_bytes(&f);
     // dbg!(x);
     
-
     println!("Get {}", key);
 
     let mut store = KeyValueDB::open(&f)
@@ -170,25 +168,29 @@ fn insert(
 ) {
     let master_password = util::get_password();
     let tmp_path = db::decrypt_db(db_location, &master_password);
-    
-    let mut store = KeyValueDB::open(&tmp_path)
-        .expect("unable to open file");
-    store.load()
-        .expect("unable to load data");
 
     let mut prompt = String::from("Please enter your username for -> ");
     prompt.push_str(&key);
 
     let username = util::get_input(prompt);
-    let password = util::get_password();
+    let mut password = util::get_password();
+
+
+    let random_pass = Password::genpass(32);
+    if password == "generate" {password = random_pass.pass}
 
     let mut res = String::new();
     res.push_str(&username);
     res.push_str(" -> ");
     res.push_str(&password);
         
+    let mut store = KeyValueDB::open(&tmp_path)
+        .expect("unable to open file");
+    store.load()
+        .expect("unable to load data");
+   
     store.insert(key.as_bytes(), res.as_bytes())
-        .expect("Unable to insert to directory");
+        .expect("Unable to insert to directory"); 
 
     //remove previous database file
     util::remove_file_from_path(db_location);
@@ -251,7 +253,11 @@ fn update(
     prompt.push_str(&key);
 
     let username = util::get_input(prompt);
-    let password = util::get_password();
+    let mut password = util::get_password();
+
+
+    let random_pass = Password::genpass(32);
+    if password == "generate" {password = random_pass.pass}
 
     let mut res = String::new();
     res.push_str(&username);

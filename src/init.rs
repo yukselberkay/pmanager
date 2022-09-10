@@ -6,7 +6,6 @@
 use std::path::PathBuf;
 use std::fs::File;
 
-use byteorder::WriteBytesExt;
 use serde_derive::{Serialize, Deserialize};
 use serde_json;
 

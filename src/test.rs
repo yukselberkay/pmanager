@@ -20,10 +20,6 @@ impl Xy {
     }
 }
 
-
-
-
-
 pub fn test_tmp(db_location: &PathBuf) {
     dbg!("test function is called");
 

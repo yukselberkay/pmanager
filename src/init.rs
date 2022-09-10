@@ -4,42 +4,45 @@
  */
 
 use std::path::PathBuf;
-use std::str::FromStr;
+use std::fs::File;
 
+use byteorder::WriteBytesExt;
 use serde_derive::{Serialize, Deserialize};
 use serde_json;
 
 use crate::util;
+use crate::db;
+use libkvdb::KeyValueDB;
 
-// pub fn init_db(config_path: String) {
-//     // parse and read the config file and get db name and db location
-//     // create db.pmanager according to config file
-//     //let config_path = "pmanager_config.json";
+pub fn init_db(config_path: String) {
+    // parse and read the config file and get db name and db location
+    // create db.pmanager according to config file
+    //let config_path = "pmanager_config.json";
 
-//     let file = match File::open(&config_path) {
-//         Err(why) => panic!("could not open file {}: {}", config_path, why),
-//         Ok(file) => file,
-//     };
+    let file = match File::open(&config_path) {
+        Err(why) => panic!("could not open file {}: {}", config_path, why),
+        Ok(file) => file,
+    };
 
-//     let json: serde_json::Value = match serde_json::from_reader(file) {
-//         Err(why) => panic!("could not parse json {}: {}", config_path, why),
-//         Ok(json) => json,
-//     };
+    let json: serde_json::Value = match serde_json::from_reader(file) {
+        Err(why) => panic!("could not parse json {}: {}", config_path, why),
+        Ok(json) => json,
+    };
 
-//     let name = json.get("name").expect("could not get index name.")
-//         .as_str().unwrap();
+    let name = json.get("name").expect("could not get index name.")
+        .as_str().unwrap();
         
-//     let path = json.get("path").expect("could not get index path.")
-//         .as_str().unwrap();
+    let path = json.get("path").expect("could not get index path.")
+        .as_str().unwrap();
 
-//     let mut final_path = String::new();
-//     final_path.push_str(path);
-//     final_path.push_str(name);
+    let mut final_path = String::new();
+    final_path.push_str(path);
+    final_path.push_str(name);
     
-//     dbg!(&final_path);
-//     util::create_file_with_data(&final_path, &String::from("\n"));
+    dbg!(&final_path);
+    util::create_file_with_data(&final_path, &String::from("\n"));
     
-// }
+}
 
 struct Config {
     name: String,
@@ -76,11 +79,13 @@ pub fn init(mut db_location: PathBuf) {
     let mut pmanager_folder = util::get_homedir().into_os_string()
         .into_string().unwrap();
 
-    // let b: bool = PathBuf::from_str(&pmanager_folder).unwrap().is_dir();
-    // if b == true {
-    //     dbg!(".pmanager directory exists skipping init process");
-    //     return ;
-    // }
+
+    let db_name = std::path::PathBuf::from("db.encrypted");
+    let b: bool = db_name.exists();
+    if b == true {
+        dbg!("db exists skipping init process");
+        return ;
+    }
 
     let dirname = "/.pmanager";
     pmanager_folder.insert_str(pmanager_folder.len(), dirname);
@@ -93,7 +98,8 @@ pub fn init(mut db_location: PathBuf) {
     let config = Config::new("/pmanager_config.json",pmanager_folder);
 
     let db_pmanager = DbFile {
-        name: PathBuf::from_str("db.pmanager").unwrap(),
+        // TODO change db name here
+        name: db_name,
         path: db_location,
     };
 
@@ -109,5 +115,32 @@ pub fn init(mut db_location: PathBuf) {
     dbg!(&config_path);
     Config::create_config(&config_path, as_json);
 
-    //db::init_db(config_path);
+    init_db(config_path);
+
+    // after initializing the db encrypt it with a master password
+    let password = util::get_password();
+    let db_location = util::get_db_location();
+    util::remove_file_from_path(&db_location);
+
+    let f = util::create_empty_file(&db_location);
+
+    let tmp_path = PathBuf::from("/tmp/.db.enc");
+    util::create_empty_file(&tmp_path);
+    
+    let mut store = KeyValueDB::open(&tmp_path)
+        .expect("unable to open file");
+    store.load()
+        .expect("unable to load data");
+
+    let key = " ";
+    let value = " ";
+    store.insert(key.as_bytes(), value.as_bytes()).unwrap();
+
+    let encrypted_tmp_file = db::encrypt_db(&tmp_path, &password);
+    
+    let encrypted_data = util::read_as_bytes(&encrypted_tmp_file);
+
+    util::write_bytes_to_file(f, &encrypted_data);
+
+    util::remove_file_from_path(&tmp_path)
 }

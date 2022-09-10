@@ -1,6 +1,4 @@
 /target
 pmanager_config.json
 .vscode
-db.pmanager
-db.encrypted
-db.decrypted
+db.*

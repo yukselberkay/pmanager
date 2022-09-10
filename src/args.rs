@@ -30,9 +30,6 @@ pub enum Subcommands {
         #[clap(short, long, action)]
         /// Key to be inserted
         key: String,
-        /// Value to be inserted with key pair
-        #[clap(short, long, action)]
-        value: String
     },
     /// Delete a key value pair from database
     Delete {
@@ -45,9 +42,6 @@ pub enum Subcommands {
         #[clap(short, long, action)]
         /// The key to be updated associated with the record
         key: String,
-        #[clap(short, long, action)]
-        /// The value to be updated associated with the record
-        value: String
     },
     /// Lists every record in the database
     List {}

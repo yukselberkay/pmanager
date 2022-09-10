@@ -8,6 +8,7 @@ use std::path::{Path,PathBuf};
 use std::io::prelude::*;
 use dirs;
 use rpassword;
+use::dialoguer::Input;
 
 use crate::DbFile;
 
@@ -124,4 +125,12 @@ pub fn get_password() -> String {
 
 pub fn remove_file_from_path(path: &PathBuf) {
     remove_file(path).expect("Failed to remove the file.");
+}
+
+pub fn get_input(prompt: String) -> String {
+    let input : String = Input::new()
+        .with_prompt(prompt)
+        .interact_text().unwrap();
+
+    input
 }

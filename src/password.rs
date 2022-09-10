@@ -1,7 +1,7 @@
 /**
  * password.rs
  * Password related functions.
- */
+*/
 
 use rand::{Rng, SeedableRng};
 use rand_hc::Hc128Rng;

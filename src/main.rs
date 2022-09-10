@@ -44,17 +44,17 @@ fn main() {
         Some(Subcommands::Get { key }) => {
             get(&key, &db_location);
         },
-        Some(Subcommands::Insert { key, value }) => {
-            println!("Insert {} -> {}", key, value);
-            insert(&db_location, key, value);
+        Some(Subcommands::Insert { key }) => {
+            println!("Insert {} ", key);
+            insert(&db_location, key);
         },
         Some(Subcommands::Delete { key }) => {
             println!("Delete -> {}", key);
             delete(&db_location, key);
         },
-        Some(Subcommands::Update { key, value }) => {
-            println!("update -> {}, {}", key, value);
-            update(&db_location, key, value);
+        Some(Subcommands::Update { key }) => {
+            println!("update -> {}", key);
+            update(&db_location, key);
         },
         Some(Subcommands::Init { db_path }) => {
             let path = PathBuf::from(db_path);
@@ -116,6 +116,7 @@ fn get(
     let master_password = util::get_password();
     dbg!(&master_password);
 
+    
     // try to decrypt the db 
     let f = db::decrypt_db(db_location, &master_password);
     // let x = util::read_as_bytes(&f);
@@ -129,7 +130,15 @@ fn get(
     store.load()
         .expect("unable to load data");
 
-    let result = store.get(key.as_bytes()).unwrap().unwrap();
+    let result = match store.get(key.as_bytes()) {
+        Ok(None) => {
+            eprintln!("specified key not found");
+            return;
+        },
+        Ok(result) => result.unwrap(),
+        Err(_) => panic!("asd"),
+    };
+    
     println!("{:?}", result);
 
     util::remove_file_from_path(&f);
@@ -158,7 +167,6 @@ fn list(
 fn insert(
     db_location: &PathBuf,
     key: &String,
-    value: &String
 ) {
     let master_password = util::get_password();
     let tmp_path = db::decrypt_db(db_location, &master_password);
@@ -167,8 +175,19 @@ fn insert(
         .expect("unable to open file");
     store.load()
         .expect("unable to load data");
+
+    let mut prompt = String::from("Please enter your username for -> ");
+    prompt.push_str(&key);
+
+    let username = util::get_input(prompt);
+    let password = util::get_password();
+
+    let mut res = String::new();
+    res.push_str(&username);
+    res.push_str(" -> ");
+    res.push_str(&password);
         
-    store.insert(key.as_bytes(), value.as_bytes())
+    store.insert(key.as_bytes(), res.as_bytes())
         .expect("Unable to insert to directory");
 
     //remove previous database file
@@ -189,6 +208,7 @@ fn delete(
     db_location: &PathBuf,
     key: &String
 ) {
+
     let master_password = util::get_password();
     let tmp_path = db::decrypt_db(db_location, &master_password);
     
@@ -196,7 +216,14 @@ fn delete(
         .expect("unable to open file");
     store.load()
         .expect("unable to load data");
-        
+
+    let mut prompt = String::from("Are you sure you want to delete entry -> ");
+    prompt.push_str(&key);
+    prompt.push_str(" (yes/no)");
+
+    let choice = util::get_input(prompt);
+    if choice == "no" {return;}
+ 
     store.delete(key.as_bytes()).unwrap();
 
     //remove previous database file
@@ -216,18 +243,35 @@ fn delete(
 fn update(
     db_location: &PathBuf,
     key: &String,
-    value: &String
 ) {
     let master_password = util::get_password();
     let tmp_path = db::decrypt_db(db_location, &master_password);
-    
+
+    let mut prompt = String::from("Please enter your username for -> ");
+    prompt.push_str(&key);
+
+    let username = util::get_input(prompt);
+    let password = util::get_password();
+
+    let mut res = String::new();
+    res.push_str(&username);
+    res.push_str(" -> ");
+    res.push_str(&password);
+        
     let mut store = KeyValueDB::open(&tmp_path)
         .expect("unable to open file");
     store.load()
         .expect("unable to load data");
-        
-    store.update(key.as_bytes(), value.as_bytes())
-        .expect("Unable to insert to directory");
+   
+    let mut prompt = String::from("Are you sure you want to update -> ");
+    prompt.push_str(&key);
+    prompt.push_str(" (yes/no)");
+    
+    let choice = util::get_input(prompt);
+    if choice == "no" {return;}
+
+    store.update(key.as_bytes(), res.as_bytes())
+        .expect("Unable to insert to directory"); 
 
     //remove previous database file
     util::remove_file_from_path(db_location);

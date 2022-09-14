@@ -15,11 +15,9 @@ use std::path::PathBuf;
 
 use args::Subcommands;
 use libkvdb::KeyValueDB;
-use rand::random;
 
 use crate::password::Password;
 use crate::init::DbFile;
-use crate::util::get_db_location;
 
 const DIR_NAME: &str = ".pmanager";
 const CONF_NAME: &str = "pmanager_config";
@@ -63,7 +61,7 @@ fn main() {
         Some(Subcommands::Init { db_path }) => {
             let path = PathBuf::from(db_path);
             dbg!("init path is -> {}", &db_path);
-            init::init(path);
+            DbFile::init(path);
         },
         Some(Subcommands::List {  }) => {
             println!("list argument is supplied.");
@@ -124,23 +122,18 @@ fn get(
     
     // try to decrypt the db 
     let f = db::decrypt_db(db_location, &master_password);
-    // let x = util::read_as_bytes(&f);
-    // dbg!(x);
     
     println!("Get {}", key);
 
-    let mut store = KeyValueDB::open(&f)
-        .expect("unable to open file");
-    store.load()
-        .expect("unable to load data");
+    let mut store = KeyValueDB::open_and_load(&f);
 
     let result = match store.get(key.as_bytes()) {
         Ok(None) => {
-            eprintln!("specified key not found");
+            eprintln!("Specified key not found");
             return;
         },
         Ok(result) => result.unwrap(),
-        Err(_) => panic!("asd"),
+        Err(_) => panic!("An error occured while getting data from database."),
     };
     
     println!("{:?}", result);
@@ -157,10 +150,7 @@ fn list(
     // try to decrypt the db 
     let f = db::decrypt_db(db_location, &master_password);
 
-    let mut store = KeyValueDB::open(&f)
-        .expect("unable to open file");
-    store.load()
-        .expect("unable to load data");
+    let mut store = KeyValueDB::open_and_load(&f);
 
     let result = store.list();
     println!("{:?}", result);
@@ -197,10 +187,7 @@ fn insert(
     res.push_str(" -> ");
     res.push_str(&password);
         
-    let mut store = KeyValueDB::open(&tmp_path)
-        .expect("unable to open file");
-    store.load()
-        .expect("unable to load data");
+    let mut store = KeyValueDB::open_and_load(&tmp_path);
    
     store.insert(key.as_bytes(), res.as_bytes())
         .expect("Unable to insert to directory"); 
@@ -227,10 +214,7 @@ fn delete(
     let master_password = util::get_password(&String::from("Enter your master password: "));
     let tmp_path = db::decrypt_db(db_location, &master_password);
     
-    let mut store = KeyValueDB::open(&tmp_path)
-        .expect("unable to open file");
-    store.load()
-        .expect("unable to load data");
+    let mut store = KeyValueDB::open_and_load(&tmp_path);
 
     let mut prompt = String::from("Are you sure you want to delete entry -> ");
     prompt.push_str(&key);
@@ -252,7 +236,7 @@ fn delete(
 
     util::write_bytes_to_file(f, &encrypted_data);
 
-    util::remove_file_from_path(&tmp_path)
+    util::remove_file_from_path(&tmp_path);
 }
 
 fn update(
@@ -284,10 +268,7 @@ fn update(
     res.push_str(" -> ");
     res.push_str(&password);
         
-    let mut store = KeyValueDB::open(&tmp_path)
-        .expect("unable to open file");
-    store.load()
-        .expect("unable to load data");
+    let mut store = KeyValueDB::open_and_load(&tmp_path);
    
     let mut prompt = String::from("Are you sure you want to update -> ");
     prompt.push_str(&key);

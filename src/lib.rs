@@ -8,7 +8,7 @@ use std::fs::{File, OpenOptions};
 use std::io;
 use std::io::prelude::*;
 use std::io::{BufReader, BufWriter, SeekFrom};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str;
 
 use crc::crc32;
@@ -32,6 +32,15 @@ pub struct KeyValuePair {
 }
 
 impl KeyValueDB {
+    pub fn open_and_load(f: &PathBuf) -> KeyValueDB {
+        let mut store = KeyValueDB::open(f)
+            .expect("Unable to open database file");
+        store.load()
+            .expect("Unable to load data from database");
+
+        store
+    }
+
     pub fn open(path: &Path) -> io::Result<Self> {
         let f = OpenOptions::new()
             .read(true)
@@ -71,9 +80,6 @@ impl KeyValueDB {
         Ok(KeyValuePair{key, value})
     }
 
-    pub fn seek_to_end(&mut self) -> io::Result<u64> {
-        self.f.seek(SeekFrom::End(0))
-    }
 
     pub fn load(&mut self) -> io::Result<()>  {
         let mut f = BufReader::new(&mut self.f);
@@ -120,7 +126,6 @@ impl KeyValueDB {
             f.seek(SeekFrom::Start(*val)).unwrap();
             let kv: KeyValuePair = KeyValueDB::process_record(&mut f).unwrap();
    
-
             let s_key = String::from_utf8_lossy(key);
             let s_val = String::from_utf8_lossy(&kv.value);
 

@@ -28,10 +28,10 @@ pub fn init_db(config_path: String) {
         Ok(json) => json,
     };
 
-    let name = json.get("name").expect("could not get index name.")
+    let name = json.get("name").expect("Could not get index 'name'.")
         .as_str().unwrap();
         
-    let path = json.get("path").expect("could not get index path.")
+    let path = json.get("path").expect("Could not get index 'path'.")
         .as_str().unwrap();
 
     let mut final_path = String::new();
@@ -67,81 +67,89 @@ impl Config {
     }
 }
 
-pub fn init(mut db_location: PathBuf) {
-    dbg!("init function has run.");
-
-    if db_location == PathBuf::from("."){
-        let default_location = util::get_homedir().join("/.pmanager");
-        db_location = default_location;
-    }
- 
-    let mut pmanager_folder = util::get_homedir().into_os_string()
-        .into_string().unwrap();
-
-
-    let db_name = std::path::PathBuf::from("db.encrypted");
-    let b: bool = db_name.exists();
-    if b == true {
-        dbg!("db exists skipping init process");
-        return ;
+impl DbFile {
+    fn new(name: PathBuf, path: PathBuf) -> DbFile {
+        DbFile {
+            name: name,
+            path: path
+        }
     }
 
-    let dirname = "/.pmanager";
-    pmanager_folder.insert_str(pmanager_folder.len(), dirname);
-    util::create_dir(&pmanager_folder);
-    dbg!(&pmanager_folder);
-    dbg!(dirname);
+    pub fn init(mut db_location: PathBuf) {
+        dbg!("init function has run.");
+
+        // TODO ~ .
+        if db_location == PathBuf::from("."){
+            let default_location = util::get_homedir().join("/.pmanager");
+            db_location = default_location;
+        }
     
+        let mut pmanager_folder = util::get_homedir().into_os_string()
+            .into_string().unwrap();
 
-    // TODO "/tmp/" path will be changed with default home path.
-    let config = Config::new("/pmanager_config.json",pmanager_folder);
 
-    let db_pmanager = DbFile {
-        // TODO change db name here
-        name: db_name,
-        path: db_location,
-    };
+        let db_name = std::path::PathBuf::from("db.encrypted");
+        let b: bool = db_name.exists();
+        if b == true {
+            println!("Database exists, skipping initialization process.");
+            return ;
+        }
 
-    let display = db_pmanager.name.display();
+        let dirname = "/.pmanager";
+        pmanager_folder.insert_str(pmanager_folder.len(), dirname);
+        util::create_dir(&pmanager_folder);
+        dbg!(&pmanager_folder);
+        dbg!(dirname);
+        
 
-    // converting db_pmanager variable to json encoded string.
-    let as_json: String = match serde_json::to_string(&db_pmanager) {
-        Err(why) => panic!("could not encode {} to json : {}", display, why),
-        Ok(as_json) => as_json,
-    };
+        // TODO "/tmp/" path will be changed with default home path.
+        let config = Config::new("/pmanager_config.json",pmanager_folder);
 
-    let config_path = format!("{}{}",config.path, config.name);
-    dbg!(&config_path);
-    Config::create_config(&config_path, as_json);
+        let db_pmanager = DbFile::new(db_name, db_location);
 
-    init_db(config_path);
+        let display = db_pmanager.name.display();
 
-    // after initializing the db encrypt it with a master password
-    let password = util::get_password(
-        &String::from("Please enter your master password. This will be used to encrypt your database.")
-    );
-    let db_location = util::get_db_location();
-    util::remove_file_from_path(&db_location);
+        // converting db_pmanager variable to json encoded string.
+        let as_json: String = match serde_json::to_string(&db_pmanager) {
+            Err(why) => panic!("Could not encode {} to json : {}", display, why),
+            Ok(as_json) => as_json,
+        };
 
-    let f = util::create_empty_file(&db_location);
+        let config_path = format!("{}{}",config.path, config.name);
+        dbg!(&config_path);
+        Config::create_config(&config_path, as_json);
 
-    let tmp_path = PathBuf::from("/tmp/.db.enc");
-    util::create_empty_file(&tmp_path);
-    
-    let mut store = KeyValueDB::open(&tmp_path)
-        .expect("unable to open file");
-    store.load()
-        .expect("unable to load data");
+        init_db(config_path);
 
-    let key = " ";
-    let value = " ";
-    store.insert(key.as_bytes(), value.as_bytes()).unwrap();
+        // after initializing the db encrypt it with a master password
+        let password = util::get_password(
+            &String::from("Please enter your master password. This will be used to encrypt your database.")
+        );
+        let db_location = util::get_db_location();
+        util::remove_file_from_path(&db_location);
 
-    let encrypted_tmp_file = db::encrypt_db(&tmp_path, &password);
-    
-    let encrypted_data = util::read_as_bytes(&encrypted_tmp_file);
+        let f = util::create_empty_file(&db_location);
 
-    util::write_bytes_to_file(f, &encrypted_data);
+        // TODO make temp directory platform independent.
+        let tmp_path = PathBuf::from("/tmp/.db.enc");
+        util::create_empty_file(&tmp_path);
+        
+        let mut store = KeyValueDB::open(&tmp_path)
+            .expect("unable to open file");
+        store.load()
+            .expect("unable to load data");
 
-    util::remove_file_from_path(&tmp_path)
+        let key = " ";
+        let value = " ";
+        store.insert(key.as_bytes(), value.as_bytes())
+            .expect("An error occured while initializing database.");
+
+        let encrypted_tmp_file = db::encrypt_db(&tmp_path, &password);
+        
+        let encrypted_data = util::read_as_bytes(&encrypted_tmp_file);
+
+        util::write_bytes_to_file(f, &encrypted_data);
+
+        util::remove_file_from_path(&tmp_path)
+    }
 }

@@ -10,7 +10,7 @@ use dirs;
 use rpassword;
 use::dialoguer::Input;
 
-use crate::DbFile;
+use crate::{DbFile, DIR_NAME, CONF_NAME};
 
 // TODO make this a generic function so it can write any data 
 // inside a file regardless of its type.
@@ -84,8 +84,8 @@ pub fn get_db_location() -> PathBuf {
     let home_dir = get_homedir();
 
     conf_path.push(home_dir);
-    conf_path.push(".pmanager");
-    conf_path.push("pmanager_config");
+    conf_path.push(DIR_NAME);
+    conf_path.push(CONF_NAME);
     conf_path.set_extension("json");
 
     dbg!(&conf_path);
@@ -116,8 +116,8 @@ pub fn get_db_location() -> PathBuf {
     db_location
 }
 
-pub fn get_password() -> String {
-    let password = rpassword::prompt_password("Enter your master password: ")
+pub fn get_password(prompt: &String) -> String {
+    let password = rpassword::prompt_password(prompt)
         .expect("An error occured while getting password input");
 
     password
@@ -127,7 +127,7 @@ pub fn remove_file_from_path(path: &PathBuf) {
     remove_file(path).expect("Failed to remove the file.");
 }
 
-pub fn get_input(prompt: String) -> String {
+pub fn get_input(prompt: &String) -> String {
     let input : String = Input::new()
         .with_prompt(prompt)
         .interact_text().unwrap();

@@ -117,7 +117,9 @@ pub fn init(mut db_location: PathBuf) {
     init_db(config_path);
 
     // after initializing the db encrypt it with a master password
-    let password = util::get_password();
+    let password = util::get_password(
+        &String::from("Please enter your master password. This will be used to encrypt your database.")
+    );
     let db_location = util::get_db_location();
     util::remove_file_from_path(&db_location);
 

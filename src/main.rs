@@ -18,6 +18,10 @@ use libkvdb::KeyValueDB;
 
 use crate::password::Password;
 use crate::init::DbFile;
+use crate::util::get_db_location;
+
+const DIR_NAME: &str = ".pmanager";
+const CONF_NAME: &str = "pmanager_config";
 
 //use dialoguer::{Input, Password};
 
@@ -71,12 +75,13 @@ fn main() {
 
     if args.debug == true {
         //debug();
-        test::test_tmp(&db_location);
+        //test::test_tmp(&db_location);
         // let v1: Vec<u8> = vec![1,3,2];
         // let v2: Vec<u8> = vec![1,3,2];
         // let v3: Vec<u8> = vec![1,3,2,5];
         // let res = Xy::test(v1, (v2,v3));
         // dbg!(res.y.1);
+
     }
 
 
@@ -112,7 +117,7 @@ fn get(
     key: &String,
     db_location: &PathBuf
 ) {
-    let master_password = util::get_password();
+    let master_password = util::get_password(&String::from("Enter your master password: "));
     dbg!(&master_password);
 
     
@@ -145,7 +150,7 @@ fn get(
 fn list(
     db_location: &PathBuf
 ) {
-    let master_password = util::get_password();
+    let master_password = util::get_password(&String::from("Enter your master password: "));
     dbg!(&master_password);
 
     // try to decrypt the db 
@@ -166,14 +171,16 @@ fn insert(
     db_location: &PathBuf,
     key: &String,
 ) {
-    let master_password = util::get_password();
+    let master_password = util::get_password(&String::from("Enter your master password: "));
     let tmp_path = db::decrypt_db(db_location, &master_password);
 
-    let mut prompt = String::from("Please enter your username for -> ");
+    let mut prompt = String::from("Please enter your username for ");
     prompt.push_str(&key);
+    let username = util::get_input(&prompt);
 
-    let username = util::get_input(prompt);
-    let mut password = util::get_password();
+    let mut prompt = String::from("Enter your password for ");
+    prompt.push_str(&username);
+    let mut password = util::get_password(&prompt);
 
 
     let random_pass = Password::genpass(32);
@@ -211,7 +218,7 @@ fn delete(
     key: &String
 ) {
 
-    let master_password = util::get_password();
+    let master_password = util::get_password(&String::from("Enter your master password: "));
     let tmp_path = db::decrypt_db(db_location, &master_password);
     
     let mut store = KeyValueDB::open(&tmp_path)
@@ -223,7 +230,7 @@ fn delete(
     prompt.push_str(&key);
     prompt.push_str(" (yes/no)");
 
-    let choice = util::get_input(prompt);
+    let choice = util::get_input(&prompt);
     if choice == "no" {return;}
  
     store.delete(key.as_bytes()).unwrap();
@@ -246,15 +253,16 @@ fn update(
     db_location: &PathBuf,
     key: &String,
 ) {
-    let master_password = util::get_password();
+    let master_password = util::get_password(&String::from("Enter your master password: "));
     let tmp_path = db::decrypt_db(db_location, &master_password);
 
-    let mut prompt = String::from("Please enter your username for -> ");
+    let mut prompt = String::from("Please enter your username for ");
     prompt.push_str(&key);
+    let username = util::get_input(&prompt);
 
-    let username = util::get_input(prompt);
-    let mut password = util::get_password();
-
+    let mut prompt = String::from("Enter your password for ");
+    prompt.push_str(&username);
+    let mut password = util::get_password(&prompt);
 
     let random_pass = Password::genpass(32);
     if password == "generate" {password = random_pass.pass}
@@ -273,7 +281,7 @@ fn update(
     prompt.push_str(&key);
     prompt.push_str(" (yes/no)");
     
-    let choice = util::get_input(prompt);
+    let choice = util::get_input(&prompt);
     if choice == "no" {return;}
 
     store.update(key.as_bytes(), res.as_bytes())

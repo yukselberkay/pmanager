@@ -67,11 +67,10 @@ impl Argon2 {
         let hash = argon2::hash_encoded(password, salt.as_bytes(), &config)
             .expect("Cannot create a hash with given parameters.");
         
-        // verify if the hash is valid
-        //let matches = argon2::verify_encoded(&hash, password).unwrap();
-
+        // verify if the created hash is valid
+        argon2::verify_encoded(&hash, password)
+            .expect("Final hash is not valid argon2.");
+        
         hash
     }
-
 }
-

@@ -23,25 +23,25 @@ pub enum Subcommands {
     /// Get value by key from database
     Get {
         #[clap(short, long, action)]
-        key: String,
+        domain: String,
     },
     /// Insert a key value pair to database
     Insert {
         #[clap(short, long, action)]
         /// Key to be inserted
-        key: String,
+        domain: String,
     },
     /// Delete a key value pair from database
     Delete {
         #[clap(short, long, action)]
         /// The key to be deleted associated with the record
-        key: String,
+        domain: String,
     },
     /// Update a record from database
     Update {
         #[clap(short, long, action)]
         /// The key to be updated associated with the record
-        key: String,
+        domain: String,
     },
     /// Lists every record in the database
     List {}

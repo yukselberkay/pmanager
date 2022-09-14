@@ -16,7 +16,6 @@ use libkvdb::KeyValueDB;
 pub fn init_db(config_path: String) {
     // parse and read the config file and get db name and db location
     // create db.pmanager according to config file
-    //let config_path = "pmanager_config.json";
 
     let file = match File::open(&config_path) {
         Err(why) => panic!("could not open file {}: {}", config_path, why),
@@ -100,7 +99,6 @@ impl DbFile {
         util::create_dir(&pmanager_folder);
         dbg!(&pmanager_folder);
         dbg!(dirname);
-        
 
         // TODO "/tmp/" path will be changed with default home path.
         let config = Config::new("/pmanager_config.json",pmanager_folder);

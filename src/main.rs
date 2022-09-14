@@ -15,6 +15,7 @@ use std::path::PathBuf;
 
 use args::Subcommands;
 use libkvdb::KeyValueDB;
+use rand::random;
 
 use crate::password::Password;
 use crate::init::DbFile;
@@ -180,11 +181,16 @@ fn insert(
 
     let mut prompt = String::from("Enter your password for ");
     prompt.push_str(&username);
+    prompt.push_str(" : ");
+    prompt.push_str(" (type 'generate' to generate a random password): ");
     let mut password = util::get_password(&prompt);
 
-
-    let random_pass = Password::genpass(32);
-    if password == "generate" {password = random_pass.pass}
+    if password == "generate" {
+        let prompt: String = String::from("Enter the length of the password you want to generate (8-128) ");
+        let size: usize = util::get_pass_len(&prompt);
+        let random_pass = Password::generate(size);
+        password = random_pass.pass;
+    }
 
     let mut res = String::new();
     res.push_str(&username);
@@ -262,10 +268,16 @@ fn update(
 
     let mut prompt = String::from("Enter your password for ");
     prompt.push_str(&username);
+    prompt.push_str(" (type 'generate' to generate a random password)");
     let mut password = util::get_password(&prompt);
 
-    let random_pass = Password::genpass(32);
-    if password == "generate" {password = random_pass.pass}
+  
+    if password == "generate" {
+        let prompt: String = String::from("Enter the length of the password you want to generate (8-128)");
+        let size: usize = util::get_pass_len(&prompt);
+        let random_pass = Password::generate(size);
+        password = random_pass.pass;
+    }
 
     let mut res = String::new();
     res.push_str(&username);

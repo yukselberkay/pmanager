@@ -19,12 +19,12 @@ impl Password {
         }
     }
 
-    pub fn genpass(mut pass_len: usize) -> Password{
-        if pass_len < 12 {
-            pass_len = 12;
+    pub fn generate(mut pass_len: usize) -> Password{
+        if pass_len < 8 {
+            pass_len = 8;
         }
-        if pass_len > 32 {
-            pass_len = 32;
+        if pass_len > 128 {
+            pass_len = 128;
         }
 
         let ascii_chars: &str = "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKL1MNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz}{|~";

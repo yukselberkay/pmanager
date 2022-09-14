@@ -134,3 +134,11 @@ pub fn get_input(prompt: &String) -> String {
 
     input
 }
+
+pub fn get_pass_len(prompt: &String) -> usize {
+    let input: usize = Input::new()
+        .with_prompt(prompt)
+        .interact_text().unwrap();
+
+    input
+}

@@ -10,7 +10,7 @@ use dirs;
 use rpassword;
 use::dialoguer::Input;
 
-use crate::{DbFile, DIR_NAME, CONF_NAME};
+use crate::{DbFile, DIR_NAME, CONF_NAME, db};
 
 // TODO make this a generic function so it can write any data 
 // inside a file regardless of its type.
@@ -141,4 +141,24 @@ pub fn get_pass_len(prompt: &String) -> usize {
         .interact_text().unwrap();
 
     input
+}
+
+pub fn update_encrypted_database_entries(
+    db_location: &PathBuf,
+    master_password: &String,
+    tmp_path: &PathBuf,
+    
+) {
+    //remove previous database file
+    remove_file_from_path(db_location);
+
+    let f = create_empty_file(db_location);
+
+    let encrypted_tmp_file = db::encrypt_db(&tmp_path, &master_password);
+    
+    let encrypted_data = read_as_bytes(&encrypted_tmp_file);
+
+    write_bytes_to_file(f, &encrypted_data);
+
+    remove_file_from_path(&tmp_path); 
 }

@@ -119,7 +119,6 @@ fn get(
     let master_password = util::get_password(&String::from("Enter your master password: "));
     dbg!(&master_password);
 
-    
     // try to decrypt the db 
     let f = db::decrypt_db(db_location, &master_password);
     
@@ -136,7 +135,9 @@ fn get(
         Err(_) => panic!("An error occured while getting data from database."),
     };
     
-    println!("{:?}", result);
+    let res_string = String::from_utf8_lossy(&result);
+
+    println!("{}", res_string);
 
     util::remove_file_from_path(&f);
 }
@@ -190,20 +191,9 @@ fn insert(
     let mut store = KeyValueDB::open_and_load(&tmp_path);
    
     store.insert(key.as_bytes(), res.as_bytes())
-        .expect("Unable to insert to directory"); 
-
-    //remove previous database file
-    util::remove_file_from_path(db_location);
-
-    let f = util::create_empty_file(db_location);
-
-    let encrypted_tmp_file = db::encrypt_db(&tmp_path, &master_password);
+        .expect("Unable to insert to database");
     
-    let encrypted_data = util::read_as_bytes(&encrypted_tmp_file);
-
-    util::write_bytes_to_file(f, &encrypted_data);
-
-    util::remove_file_from_path(&tmp_path); 
+    util::update_encrypted_database_entries(db_location, &master_password, &tmp_path);
 }
 
 fn delete(

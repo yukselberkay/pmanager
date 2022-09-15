@@ -5,10 +5,12 @@
 
 use std::path::PathBuf;
 use std::fs::File;
+use std::env;
 
 use serde_derive::{Serialize, Deserialize};
 use serde_json;
 
+use crate::TMP_ENC_FILE;
 use crate::util;
 use crate::db;
 use libkvdb::KeyValueDB;
@@ -100,7 +102,6 @@ impl DbFile {
         dbg!(&pmanager_folder);
         dbg!(dirname);
 
-        // TODO "/tmp/" path will be changed with default home path.
         let config = Config::new("/pmanager_config.json",pmanager_folder);
 
         let db_pmanager = DbFile::new(db_name, db_location);
@@ -128,8 +129,8 @@ impl DbFile {
 
         let f = util::create_empty_file(&db_location);
 
-        // TODO make temp directory platform independent.
-        let tmp_path = PathBuf::from("/tmp/.db.enc");
+        let mut tmp_path = env::temp_dir();
+        tmp_path.push(TMP_ENC_FILE);
         util::create_empty_file(&tmp_path);
         
         let mut store = KeyValueDB::open_and_load(&tmp_path);

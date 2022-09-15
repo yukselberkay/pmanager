@@ -1,6 +1,6 @@
 [package]
 name = "pmanager"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -22,7 +22,6 @@ crc = "1.7"
 clap = { version = "3.2.20", features = ["derive"] }
 rpassword = "7.0.0"
 dialoguer = "0.10.2"
-temp-dir = "0.1.11"
 
 [lib]
 name = "libkvdb"

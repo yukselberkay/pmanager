@@ -1,8 +1,5 @@
 release:
-	make release-linux
-
-release-linux:
-	@echo "Building for linux.."
+	@echo "Building..."
 	cargo build --release
 	
 debug:

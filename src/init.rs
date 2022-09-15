@@ -10,22 +10,24 @@ use std::env;
 use serde_derive::{Serialize, Deserialize};
 use serde_json;
 
-use crate::TMP_ENC_FILE;
+use crate::{TMP_ENC_FILE, DIR_NAME, CONF_NAME, DB_NAME};
 use crate::util;
 use crate::db;
 use libkvdb::KeyValueDB;
 
-pub fn init_db(config_path: String) {
+pub fn init_db(config_path: PathBuf) {
     // parse and read the config file and get db name and db location
     // create db.pmanager according to config file
 
+    let display = config_path.display();
+
     let file = match File::open(&config_path) {
-        Err(why) => panic!("could not open file {}: {}", config_path, why),
+        Err(why) => panic!("Could not open file {}: {}", display, why),
         Ok(file) => file,
     };
 
     let json: serde_json::Value = match serde_json::from_reader(file) {
-        Err(why) => panic!("could not parse json {}: {}", config_path, why),
+        Err(why) => panic!("Could not parse json {}: {}", display, why),
         Ok(json) => json,
     };
 
@@ -35,9 +37,10 @@ pub fn init_db(config_path: String) {
     let path = json.get("path").expect("Could not get index 'path'.")
         .as_str().unwrap();
 
-    let mut final_path = String::new();
-    final_path.push_str(path);
-    final_path.push_str(name);
+
+    let mut final_path = PathBuf::new();
+    final_path.push(path);
+    final_path.push(name);
     
     dbg!(&final_path);
     util::create_file_with_data(&final_path, &String::from("\n"));
@@ -45,8 +48,8 @@ pub fn init_db(config_path: String) {
 }
 
 struct Config {
-    name: String,
-    path: String,
+    name: PathBuf,
+    path: PathBuf,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -56,15 +59,16 @@ pub struct DbFile {
 }
 
 impl Config {
-    fn new(name: &str, path: String) -> Config {
+    fn new(name: PathBuf, path: PathBuf) -> Config {
         Config {
-            name: String::from(name),
+            name: name,
             path: path,
         }
     }
 
-    fn create_config(path_string: &String, json_data: String) {
-        util::create_file_with_data(path_string, &json_data);
+    fn create_config(path: &PathBuf, json_data: String) {
+        dbg!(path);
+        util::create_file_with_data(path, &json_data);
     }
 }
 
@@ -81,30 +85,27 @@ impl DbFile {
 
         // TODO ~ .
         if db_location == PathBuf::from("."){
-            let default_location = util::get_homedir().join("/.pmanager");
+            let default_location: PathBuf = util::get_homedir().join(DIR_NAME);
             db_location = default_location;
         }
     
-        let mut pmanager_folder = util::get_homedir().into_os_string()
-            .into_string().unwrap();
+        let mut pmanager_folder: PathBuf = util::get_homedir();
+        dbg!(&pmanager_folder);
 
 
-        let db_name = std::path::PathBuf::from("db.encrypted");
-        let b: bool = db_name.exists();
-        if b == true {
-            println!("Database exists, skipping initialization process.");
-            return ;
-        }
 
-        let dirname = "/.pmanager";
-        pmanager_folder.insert_str(pmanager_folder.len(), dirname);
+        pmanager_folder.push(DIR_NAME);
+
         util::create_dir(&pmanager_folder);
         dbg!(&pmanager_folder);
-        dbg!(dirname);
 
-        let config = Config::new("/pmanager_config.json",pmanager_folder);
+        let mut conf_name: PathBuf = PathBuf::new();
+        conf_name.push(CONF_NAME);
+        conf_name.set_extension("json");
 
-        let db_pmanager = DbFile::new(db_name, db_location);
+        let config = Config::new(conf_name, pmanager_folder);
+
+        let db_pmanager = DbFile::new(PathBuf::from(DB_NAME), db_location);
 
         let display = db_pmanager.name.display();
 
@@ -114,9 +115,19 @@ impl DbFile {
             Ok(as_json) => as_json,
         };
 
-        let config_path = format!("{}{}",config.path, config.name);
+        let mut config_path: PathBuf = PathBuf::new();
+        config_path.push(config.path);
+        config_path.push(config.name);
         dbg!(&config_path);
+
         Config::create_config(&config_path, as_json);
+
+        let db_name = util::get_db_location();
+        let b: bool = db_name.exists();
+        if b == true {
+            println!("Database exists, skipping initialization process.");
+            return ;
+        }
 
         init_db(config_path);
 

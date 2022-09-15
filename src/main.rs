@@ -26,6 +26,8 @@ const CONF_NAME: &str = "pmanager_config";
 const TMP_ENC_FILE: &str = ".db_pmanager.enc";
 const TMP_DEC_FILE: &str = ".db_pmanager.dec";
 
+const DB_NAME: &str = "db.pmanager";
+
 fn debug() {
     let dir = env::temp_dir();
     dbg!(dir);
@@ -35,22 +37,28 @@ fn main() {
 
     let args = args::arg_parser();
     
-    let db_location = util::get_db_location();
-    dbg!(&db_location);
 
     match &args.command {
         Some(Subcommands::Get { domain }) => {
+            let db_location = util::get_db_location();
+            dbg!(&db_location);
             get(&domain, &db_location);
         },
         Some(Subcommands::Insert { domain }) => {
+            let db_location = util::get_db_location();
+            dbg!(&db_location);
             println!("Insert {} ", domain);
             insert(&db_location, domain);
         },
         Some(Subcommands::Delete { domain }) => {
+            let db_location = util::get_db_location();
+            dbg!(&db_location);
             println!("Delete -> {}", domain);
             delete(&db_location, domain);
         },
         Some(Subcommands::Update { domain }) => {
+            let db_location = util::get_db_location();
+            dbg!(&db_location);
             println!("update -> {}", domain);
             update(&db_location, domain);
         },
@@ -60,6 +68,8 @@ fn main() {
             DbFile::init(path);
         },
         Some(Subcommands::List {  }) => {
+            let db_location = util::get_db_location();
+            dbg!(&db_location);
             println!("list argument is supplied.");
             list(&db_location);
         },

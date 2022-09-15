@@ -4,7 +4,7 @@
  */
 
 use std::fs::{remove_file, read, create_dir_all, File};
-use std::path::{Path,PathBuf};
+use std::path::{PathBuf};
 use std::io::prelude::*;
 use dirs;
 use rpassword;
@@ -14,9 +14,7 @@ use crate::{DbFile, DIR_NAME, CONF_NAME, db};
 
 // TODO make this a generic function so it can write any data 
 // inside a file regardless of its type.
-pub fn create_file_with_data(path_string: &String, data: &String) {
-    let path = Path::new(&path_string);
-    
+pub fn create_file_with_data(path: &PathBuf, data: &String) {
     // display is a helper struct for safely printing paths
     let display = path.display();
 
@@ -62,10 +60,10 @@ pub fn read_as_bytes(path: &PathBuf) -> Vec<u8> {
     bytes
 }
 
-pub fn create_dir(dir_path: &String) {
+pub fn create_dir(dir_path: &PathBuf) {
     match create_dir_all(&dir_path) {
-        Err(why) => panic!("could not create dirs {}: {}", &dir_path, why),
-        Ok(_) => println!("directories created successfully : {}.",dir_path),
+        Err(why) => panic!("could not create dirs {:?}: {}", &dir_path, why),
+        Ok(_) => println!("directories created successfully : {:?}.",dir_path),
     };
 }
 
@@ -96,12 +94,12 @@ pub fn get_db_location() -> PathBuf {
     // parse the configuration and get the db location
     let mut s = String::new();
     let mut file = match File::open(&conf_path) {
-        Err(why) => panic!("could not open : {} {}", display, why),
+        Err(why) => panic!("Could not open : {} {}", display, why),
         Ok(file) => file,
     };
    
     match file.read_to_string(&mut s) {
-        Err(why) => panic!("could not read as string: {} {}", display, why),
+        Err(why) => panic!("Could not read as string: {} {}", display, why),
         Ok(file) => file,
     };
 

@@ -10,7 +10,7 @@ use std::env;
 use serde_derive::{Serialize, Deserialize};
 use serde_json;
 
-use crate::{TMP_ENC_FILE, DIR_NAME, CONF_NAME, DB_NAME};
+use crate::{TMP_ENC_FILE, DIR_NAME, CONF_NAME, DB_NAME, CONF_FILE_EXT};
 use crate::util;
 use crate::db;
 use libkvdb::KeyValueDB;
@@ -84,15 +84,19 @@ impl DbFile {
         dbg!("init function has run.");
 
         // TODO ~ .
-        if db_location == PathBuf::from("."){
+        if db_location == PathBuf::from("~"){
             let default_location: PathBuf = util::get_homedir().join(DIR_NAME);
+            db_location = default_location;
+        }
+
+        if db_location == PathBuf::from(".") {
+            let mut default_location: PathBuf = env::current_dir().unwrap(); 
+            default_location.push(DIR_NAME);
             db_location = default_location;
         }
     
         let mut pmanager_folder: PathBuf = util::get_homedir();
         dbg!(&pmanager_folder);
-
-
 
         pmanager_folder.push(DIR_NAME);
 
@@ -101,7 +105,7 @@ impl DbFile {
 
         let mut conf_name: PathBuf = PathBuf::new();
         conf_name.push(CONF_NAME);
-        conf_name.set_extension("json");
+        conf_name.set_extension(CONF_FILE_EXT);
 
         let config = Config::new(conf_name, pmanager_folder);
 
@@ -133,7 +137,7 @@ impl DbFile {
 
         // after initializing the db encrypt it with a master password
         let password = util::get_password(
-            &String::from("Please enter your master password. This will be used to encrypt your database.")
+            &String::from("Please enter your master password. This password will be used to encrypt your database : ")
         );
         let db_location = util::get_db_location();
         util::remove_file_from_path(&db_location);

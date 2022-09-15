@@ -28,6 +28,8 @@ const TMP_DEC_FILE: &str = ".db_pmanager.dec";
 
 const DB_NAME: &str = "db.pmanager";
 
+const CONF_FILE_EXT: &str = "json";
+
 fn debug() {
     let dir = env::temp_dir();
     dbg!(dir);

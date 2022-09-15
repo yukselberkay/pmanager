@@ -10,11 +10,14 @@ use dirs;
 use rpassword;
 use::dialoguer::Input;
 
-use crate::{DbFile, DIR_NAME, CONF_NAME, db};
+use crate::{DbFile, DIR_NAME, CONF_NAME, db, CONF_FILE_EXT};
 
 // TODO make this a generic function so it can write any data 
 // inside a file regardless of its type.
 pub fn create_file_with_data(path: &PathBuf, data: &String) {
+    let prefix = path.parent().unwrap();
+    create_dir_all(prefix).unwrap();
+
     // display is a helper struct for safely printing paths
     let display = path.display();
 
@@ -84,7 +87,7 @@ pub fn get_db_location() -> PathBuf {
     conf_path.push(home_dir);
     conf_path.push(DIR_NAME);
     conf_path.push(CONF_NAME);
-    conf_path.set_extension("json");
+    conf_path.set_extension(CONF_FILE_EXT);
 
     dbg!(&conf_path);
 

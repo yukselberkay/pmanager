@@ -1,7 +1,7 @@
 /**
  * db.rs
  * Database file/io related operations.
- */
+*/
 
 use std::path::{PathBuf};
 use std::process::exit;
@@ -10,7 +10,6 @@ use crate::kdf::Argon2;
 use crate::password::Password;
 use crate::util;
 use crate::aes_gcm::AesGcm256;
-
 
 pub fn encrypt_db(
     db_location: &PathBuf,

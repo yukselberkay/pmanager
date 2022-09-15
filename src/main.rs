@@ -22,6 +22,21 @@ use crate::init::DbFile;
 const DIR_NAME: &str = ".pmanager";
 const CONF_NAME: &str = "pmanager_config";
 
+
+use temp_dir::TempDir;
+fn debug() {
+    let d = TempDir::new().unwrap();
+    dbg!(d.path());
+    let f: PathBuf = d.child("db.dec");
+    debug2(f);
+}
+fn debug2(f: PathBuf) {
+    let data = "asdasdasd";
+    std::fs::write(&f, data).unwrap();
+    let x = util::read_as_bytes(&f);
+    dbg!(x);
+}
+
 fn main() {
 
     let args = args::arg_parser();
@@ -60,7 +75,7 @@ fn main() {
     }
 
     if args.debug == true {
-        //debug();
+        debug();
         
     }
 }

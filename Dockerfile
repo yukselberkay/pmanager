@@ -7,7 +7,6 @@ COPY Cargo.toml Cargo.lock ./
 COPY src/ src/
 RUN cargo install --path .
 
-
 FROM alpine:3.12
 LABEL author = "yukselberkay <https://github.com/yukselberkay>"
 RUN addgroup -S pmanager && adduser -S -G pmanager pmanager

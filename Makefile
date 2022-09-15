@@ -7,7 +7,7 @@ release-linux:
 	
 debug:
 	@echo "Debug mode enabled."
-	cargo run -- debug
+	cargo run -- --debug
 
 docker:
 	@echo "Building for docker."

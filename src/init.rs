@@ -132,10 +132,7 @@ impl DbFile {
         let tmp_path = PathBuf::from("/tmp/.db.enc");
         util::create_empty_file(&tmp_path);
         
-        let mut store = KeyValueDB::open(&tmp_path)
-            .expect("unable to open file");
-        store.load()
-            .expect("unable to load data");
+        let mut store = KeyValueDB::open_and_load(&tmp_path);
 
         let key = " ";
         let value = " ";

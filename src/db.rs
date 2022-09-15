@@ -16,7 +16,7 @@ pub fn encrypt_db(
     db_location: &PathBuf,
     password: &String,
 ) -> PathBuf {
-    let len = password.len();
+    let len: usize = password.len();
     let x = String::from(password);
     let master_password = Password::new(x, len);
     let derived_key: String = Argon2::derive_key(master_password);

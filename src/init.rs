@@ -83,7 +83,6 @@ impl DbFile {
     pub fn init(mut db_location: PathBuf) {
         dbg!("init function has run.");
 
-        // TODO ~ .
         if db_location == PathBuf::from("~"){
             let default_location: PathBuf = util::get_homedir().join(DIR_NAME);
             db_location = default_location;
@@ -126,7 +125,7 @@ impl DbFile {
 
         Config::create_config(&config_path, as_json);
 
-        let db_name = util::get_db_location();
+        let db_name: PathBuf = util::get_db_location();
         let b: bool = db_name.exists();
         if b == true {
             println!("Database exists, skipping initialization process.");
@@ -136,28 +135,28 @@ impl DbFile {
         init_db(config_path);
 
         // after initializing the db encrypt it with a master password
-        let password = util::get_password(
+        let password: String = util::get_password(
             &String::from("Please enter your master password. This password will be used to encrypt your database : ")
         );
-        let db_location = util::get_db_location();
+        let db_location: PathBuf = util::get_db_location();
         util::remove_file_from_path(&db_location);
 
-        let f = util::create_empty_file(&db_location);
+        let f: File = util::create_empty_file(&db_location);
 
-        let mut tmp_path = env::temp_dir();
+        let mut tmp_path: PathBuf  = env::temp_dir();
         tmp_path.push(TMP_ENC_FILE);
         util::create_empty_file(&tmp_path);
         
-        let mut store = KeyValueDB::open_and_load(&tmp_path);
+        let mut store: KeyValueDB = KeyValueDB::open_and_load(&tmp_path);
 
         let key = " ";
         let value = " ";
         store.insert(key.as_bytes(), value.as_bytes())
             .expect("An error occured while initializing database.");
 
-        let encrypted_tmp_file = db::encrypt_db(&tmp_path, &password);
+        let encrypted_tmp_file: PathBuf  = db::encrypt_db(&tmp_path, &password);
         
-        let encrypted_data = util::read_as_bytes(&encrypted_tmp_file);
+        let encrypted_data: Vec<u8> = util::read_as_bytes(&encrypted_tmp_file);
 
         util::write_bytes_to_file(f, &encrypted_data);
 

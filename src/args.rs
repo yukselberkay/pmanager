@@ -48,6 +48,6 @@ pub enum Subcommands {
 }
 
 pub fn arg_parser() -> Cli{
-    let args = Cli::parse();
+    let args: Cli = Cli::parse();
     args
 }

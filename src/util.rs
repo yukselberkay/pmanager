@@ -12,8 +12,6 @@ use::dialoguer::Input;
 
 use crate::{DbFile, DIR_NAME, CONF_NAME, db, CONF_FILE_EXT};
 
-// TODO make this a generic function so it can write any data 
-// inside a file regardless of its type.
 pub fn create_file_with_data(path: &PathBuf, data: &String) {
     let prefix = path.parent().unwrap();
     create_dir_all(prefix).unwrap();
@@ -77,8 +75,7 @@ pub fn get_homedir() -> PathBuf {
     homedir
 }
 
-// TODO: refactoring
-// parse pmanager config to get the db file location
+// parses pmanager config to get the db file location
 pub fn get_db_location() -> PathBuf {
     let mut conf_path = PathBuf::new();
 

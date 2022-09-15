@@ -1,3 +1,4 @@
+use std::env;
 /**
  * db.rs
  * Database file/io related operations.
@@ -8,7 +9,7 @@ use std::process::exit;
 
 use crate::kdf::Argon2;
 use crate::password::Password;
-use crate::util;
+use crate::{util, TMP_DEC_FILE, TMP_ENC_FILE};
 use crate::aes_gcm::AesGcm256;
 
 pub fn encrypt_db(
@@ -40,7 +41,9 @@ pub fn encrypt_db(
     };
 
     // dirty solution, refactor here make filename random.
-    let tmp_path = PathBuf::from(String::from("/tmp/.db.enc"));
+    let mut tmp_path = env::temp_dir();
+    tmp_path.push(TMP_ENC_FILE);
+
     let f = util::create_empty_file(&tmp_path);
     util::write_bytes_to_file(f, &encrypted_data);
 
@@ -76,8 +79,9 @@ pub fn decrypt_db(
         }
     };
 
-    // dirty solution, refactor here make filename random.
-    let tmp_path = PathBuf::from(String::from("/tmp/.db.dec"));
+    let mut tmp_path = env::temp_dir();
+    tmp_path.push(TMP_DEC_FILE);
+
     let f = util::create_empty_file(&tmp_path);
     util::write_bytes_to_file(f, &decrypted_data);
     

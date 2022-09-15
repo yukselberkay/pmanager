@@ -11,6 +11,7 @@ mod init;
 mod util;
 mod test;
 
+use std::env;
 use std::path::PathBuf;
 
 use args::Subcommands;
@@ -22,19 +23,12 @@ use crate::init::DbFile;
 const DIR_NAME: &str = ".pmanager";
 const CONF_NAME: &str = "pmanager_config";
 
+const TMP_ENC_FILE: &str = ".db_pmanager.enc";
+const TMP_DEC_FILE: &str = ".db_pmanager.dec";
 
-use temp_dir::TempDir;
 fn debug() {
-    let d = TempDir::new().unwrap();
-    dbg!(d.path());
-    let f: PathBuf = d.child("db.dec");
-    debug2(f);
-}
-fn debug2(f: PathBuf) {
-    let data = "asdasdasd";
-    std::fs::write(&f, data).unwrap();
-    let x = util::read_as_bytes(&f);
-    dbg!(x);
+    let dir = env::temp_dir();
+    dbg!(dir);
 }
 
 fn main() {

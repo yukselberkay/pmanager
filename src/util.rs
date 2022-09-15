@@ -1,16 +1,15 @@
+use ::dialoguer::Input;
+use dirs;
+use rpassword;
 /**
  * util.rs
  * Utility functions to avoid code reuse.
  */
-
-use std::fs::{remove_file, read, create_dir_all, File};
-use std::path::{PathBuf};
+use std::fs::{create_dir_all, read, remove_file, File};
 use std::io::prelude::*;
-use dirs;
-use rpassword;
-use::dialoguer::Input;
+use std::path::PathBuf;
 
-use crate::{DbFile, DIR_NAME, CONF_NAME, db, CONF_FILE_EXT};
+use crate::{db, DbFile, CONF_FILE_EXT, CONF_NAME, DIR_NAME};
 
 pub fn create_file_with_data(path: &PathBuf, data: &String) {
     let prefix = path.parent().unwrap();
@@ -19,7 +18,7 @@ pub fn create_file_with_data(path: &PathBuf, data: &String) {
     // display is a helper struct for safely printing paths
     let display = path.display();
 
-    // open a file 
+    // open a file
     let mut file = match File::create(&path) {
         Err(why) => panic!("could not create {}: {}", display, why),
         Ok(file) => file,
@@ -32,12 +31,12 @@ pub fn create_file_with_data(path: &PathBuf, data: &String) {
     }
 }
 
-pub fn create_empty_file(path: &PathBuf) -> File{
+pub fn create_empty_file(path: &PathBuf) -> File {
     let display = path.display();
 
     let file = match File::create(&path) {
-        Err(why) => panic!("cannot create file at {}: {}",display, why),
-        Ok(file) => file
+        Err(why) => panic!("cannot create file at {}: {}", display, why),
+        Ok(file) => file,
     };
 
     file
@@ -64,13 +63,12 @@ pub fn read_as_bytes(path: &PathBuf) -> Vec<u8> {
 pub fn create_dir(dir_path: &PathBuf) {
     match create_dir_all(&dir_path) {
         Err(why) => panic!("could not create dirs {:?}: {}", &dir_path, why),
-        Ok(_) => println!("directories created successfully : {:?}.",dir_path),
+        Ok(_) => println!("directories created successfully : {:?}.", dir_path),
     };
 }
 
 pub fn get_homedir() -> PathBuf {
-    let homedir = dirs::home_dir()
-        .expect("could not get home directory");    
+    let homedir = dirs::home_dir().expect("could not get home directory");
 
     homedir
 }
@@ -97,7 +95,7 @@ pub fn get_db_location() -> PathBuf {
         Err(why) => panic!("Could not open : {} {}", display, why),
         Ok(file) => file,
     };
-   
+
     match file.read_to_string(&mut s) {
         Err(why) => panic!("Could not read as string: {} {}", display, why),
         Ok(file) => file,
@@ -110,13 +108,13 @@ pub fn get_db_location() -> PathBuf {
     db_location.push(d.name);
 
     dbg!(&db_location);
-    
+
     db_location
 }
 
 pub fn get_password(prompt: &String) -> String {
-    let password = rpassword::prompt_password(prompt)
-        .expect("An error occured while getting password input");
+    let password =
+        rpassword::prompt_password(prompt).expect("An error occured while getting password input");
 
     password
 }
@@ -126,17 +124,13 @@ pub fn remove_file_from_path(path: &PathBuf) {
 }
 
 pub fn get_input(prompt: &String) -> String {
-    let input : String = Input::new()
-        .with_prompt(prompt)
-        .interact_text().unwrap();
+    let input: String = Input::new().with_prompt(prompt).interact_text().unwrap();
 
     input
 }
 
 pub fn get_pass_len(prompt: &String) -> usize {
-    let input: usize = Input::new()
-        .with_prompt(prompt)
-        .interact_text().unwrap();
+    let input: usize = Input::new().with_prompt(prompt).interact_text().unwrap();
 
     input
 }
@@ -145,7 +139,6 @@ pub fn update_encrypted_database_entries(
     db_location: &PathBuf,
     master_password: &String,
     tmp_path: &PathBuf,
-    
 ) {
     //remove previous database file
     remove_file_from_path(db_location);
@@ -153,10 +146,10 @@ pub fn update_encrypted_database_entries(
     let f = create_empty_file(db_location);
 
     let encrypted_tmp_file = db::encrypt_db(&tmp_path, &master_password);
-    
+
     let encrypted_data = read_as_bytes(&encrypted_tmp_file);
 
     write_bytes_to_file(f, &encrypted_data);
 
-    remove_file_from_path(&tmp_path); 
+    remove_file_from_path(&tmp_path);
 }

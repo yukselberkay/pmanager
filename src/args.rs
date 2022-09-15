@@ -2,7 +2,6 @@
  * args.rs
  * Parses command line arguments.
  */
-
 use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -44,10 +43,10 @@ pub enum Subcommands {
         domain: String,
     },
     /// Lists every record in the database
-    List {}
+    List {},
 }
 
-pub fn arg_parser() -> Cli{
+pub fn arg_parser() -> Cli {
     let args: Cli = Cli::parse();
     args
 }

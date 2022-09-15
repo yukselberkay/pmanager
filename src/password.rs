@@ -2,7 +2,6 @@
  * password.rs
  * Password related functions.
 */
-
 use rand::{Rng, SeedableRng};
 use rand_hc::Hc128Rng;
 
@@ -19,7 +18,7 @@ impl Password {
         }
     }
 
-    pub fn generate(mut pass_len: usize) -> Password{
+    pub fn generate(mut pass_len: usize) -> Password {
         if pass_len < 8 {
             pass_len = 8;
         }
@@ -42,5 +41,3 @@ impl Password {
         generated_password
     }
 }
-
-

@@ -1,18 +1,17 @@
+use std::env;
+use std::fs::File;
 /**
  * init.rs
  * Initializes the db.
  */
-
 use std::path::PathBuf;
-use std::fs::File;
-use std::env;
 
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 use serde_json;
 
-use crate::{TMP_ENC_FILE, DIR_NAME, CONF_NAME, DB_NAME, CONF_FILE_EXT};
-use crate::util;
 use crate::db;
+use crate::util;
+use crate::{CONF_FILE_EXT, CONF_NAME, DB_NAME, DIR_NAME, TMP_ENC_FILE};
 use libkvdb::KeyValueDB;
 
 pub fn init_db(config_path: PathBuf) {
@@ -31,20 +30,24 @@ pub fn init_db(config_path: PathBuf) {
         Ok(json) => json,
     };
 
-    let name = json.get("name").expect("Could not get index 'name'.")
-        .as_str().unwrap();
-        
-    let path = json.get("path").expect("Could not get index 'path'.")
-        .as_str().unwrap();
+    let name = json
+        .get("name")
+        .expect("Could not get index 'name'.")
+        .as_str()
+        .unwrap();
 
+    let path = json
+        .get("path")
+        .expect("Could not get index 'path'.")
+        .as_str()
+        .unwrap();
 
     let mut final_path = PathBuf::new();
     final_path.push(path);
     final_path.push(name);
-    
+
     dbg!(&final_path);
     util::create_file_with_data(&final_path, &String::from("\n"));
-    
 }
 
 struct Config {
@@ -76,24 +79,24 @@ impl DbFile {
     fn new(name: PathBuf, path: PathBuf) -> DbFile {
         DbFile {
             name: name,
-            path: path
+            path: path,
         }
     }
 
     pub fn init(mut db_location: PathBuf) {
         dbg!("init function has run.");
 
-        if db_location == PathBuf::from("~"){
+        if db_location == PathBuf::from("~") {
             let default_location: PathBuf = util::get_homedir().join(DIR_NAME);
             db_location = default_location;
         }
 
         if db_location == PathBuf::from(".") {
-            let mut default_location: PathBuf = env::current_dir().unwrap(); 
+            let mut default_location: PathBuf = env::current_dir().unwrap();
             default_location.push(DIR_NAME);
             db_location = default_location;
         }
-    
+
         let mut pmanager_folder: PathBuf = util::get_homedir();
         dbg!(&pmanager_folder);
 
@@ -129,7 +132,7 @@ impl DbFile {
         let b: bool = db_name.exists();
         if b == true {
             println!("Database exists, skipping initialization process.");
-            return ;
+            return;
         }
 
         init_db(config_path);
@@ -143,19 +146,20 @@ impl DbFile {
 
         let f: File = util::create_empty_file(&db_location);
 
-        let mut tmp_path: PathBuf  = env::temp_dir();
+        let mut tmp_path: PathBuf = env::temp_dir();
         tmp_path.push(TMP_ENC_FILE);
         util::create_empty_file(&tmp_path);
-        
+
         let mut store: KeyValueDB = KeyValueDB::open_and_load(&tmp_path);
 
         let key = " ";
         let value = " ";
-        store.insert(key.as_bytes(), value.as_bytes())
+        store
+            .insert(key.as_bytes(), value.as_bytes())
             .expect("An error occured while initializing database.");
 
-        let encrypted_tmp_file: PathBuf  = db::encrypt_db(&tmp_path, &password);
-        
+        let encrypted_tmp_file: PathBuf = db::encrypt_db(&tmp_path, &password);
+
         let encrypted_data: Vec<u8> = util::read_as_bytes(&encrypted_tmp_file);
 
         util::write_bytes_to_file(f, &encrypted_data);

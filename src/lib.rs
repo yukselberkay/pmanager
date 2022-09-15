@@ -2,7 +2,6 @@
  * lib.rs
  * Log structured append only database backend.
 */
-
 use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
 use std::io;
@@ -22,7 +21,7 @@ type ByteStr = [u8];
 #[derive(Debug)]
 pub struct KeyValueDB {
     f: File,
-    pub index: HashMap<ByteString, u64>
+    pub index: HashMap<ByteString, u64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -33,10 +32,8 @@ pub struct KeyValuePair {
 
 impl KeyValueDB {
     pub fn open_and_load(f: &PathBuf) -> KeyValueDB {
-        let mut store = KeyValueDB::open(f)
-            .expect("Unable to open database file");
-        store.load()
-            .expect("Unable to load data from database");
+        let mut store = KeyValueDB::open(f).expect("Unable to open database file");
+        store.load().expect("Unable to load data from database");
 
         store
     }
@@ -48,12 +45,12 @@ impl KeyValueDB {
             .create(true)
             .append(true)
             .open(path)?;
-    
+
         let index: HashMap<ByteString, u64> = HashMap::new();
-        Ok(KeyValueDB{ f, index })
+        Ok(KeyValueDB { f, index })
     }
 
-    fn process_record<R: Read> (f: &mut R) -> io::Result<KeyValuePair> {
+    fn process_record<R: Read>(f: &mut R) -> io::Result<KeyValuePair> {
         let saved_checksum = f.read_u32::<LittleEndian>()?;
         let key_len = f.read_u32::<LittleEndian>()?;
         let val_len = f.read_u32::<LittleEndian>()?;
@@ -62,26 +59,22 @@ impl KeyValueDB {
         let mut data = ByteString::with_capacity(data_len as usize);
 
         {
-            f.by_ref().take(data_len as u64)
-                .read_to_end(&mut data)?;
+            f.by_ref().take(data_len as u64).read_to_end(&mut data)?;
         }
 
         debug_assert_eq!(data.len(), data_len as usize);
 
         let checksum = crc32::checksum_ieee(&data);
         if checksum != saved_checksum {
-            panic!(
-                "data corruption"
-            );
+            panic!("data corruption");
         }
         let value = data.split_off(key_len as usize);
         dbg!(&value);
         let key = data;
-        Ok(KeyValuePair{key, value})
+        Ok(KeyValuePair { key, value })
     }
 
-
-    pub fn load(&mut self) -> io::Result<()>  {
+    pub fn load(&mut self) -> io::Result<()> {
         let mut f = BufReader::new(&mut self.f);
 
         loop {
@@ -98,15 +91,13 @@ impl KeyValueDB {
                 Ok(kv) => {
                     //dbg!(&kv);
                     kv
-                },
-                Err(err) => {
-                    match err.kind() {
-                        io::ErrorKind::UnexpectedEof => {
-                            break;
-                        }
-                        _ => return Err(err)
-                    }
                 }
+                Err(err) => match err.kind() {
+                    io::ErrorKind::UnexpectedEof => {
+                        break;
+                    }
+                    _ => return Err(err),
+                },
             };
 
             self.index.insert(kv.key, position);
@@ -116,16 +107,12 @@ impl KeyValueDB {
         Ok(())
     }
 
-    pub fn list(
-        &mut self,
-    ) {
+    pub fn list(&mut self) {
         for (key, val) in &self.index {
-
-
             let mut f = BufReader::new(&mut self.f);
             f.seek(SeekFrom::Start(*val)).unwrap();
             let kv: KeyValuePair = KeyValueDB::process_record(&mut f).unwrap();
-   
+
             let s_key = String::from_utf8_lossy(key);
             let s_val = String::from_utf8_lossy(&kv.value);
 
@@ -133,10 +120,7 @@ impl KeyValueDB {
         }
     }
 
-    pub fn get(
-        &mut self,
-        key: &ByteStr
-    ) -> io::Result<Option<ByteString>> {
+    pub fn get(&mut self, key: &ByteStr) -> io::Result<Option<ByteString>> {
         let position = match self.index.get(key) {
             None => return Ok(None),
             Some(position) => *position,
@@ -147,10 +131,7 @@ impl KeyValueDB {
         Ok(Some(kv.value))
     }
 
-    pub fn get_at(
-        &mut self,
-        position: u64
-    ) -> io::Result<KeyValuePair> {
+    pub fn get_at(&mut self, position: u64) -> io::Result<KeyValuePair> {
         let mut f = BufReader::new(&mut self.f);
         f.seek(SeekFrom::Start(position))?;
         let kv = KeyValueDB::process_record(&mut f)?;
@@ -158,21 +139,14 @@ impl KeyValueDB {
         Ok(kv)
     }
 
-    pub fn insert(&mut self,
-        key: &ByteStr,
-        value: &ByteStr
-    ) -> io::Result<()> {
+    pub fn insert(&mut self, key: &ByteStr, value: &ByteStr) -> io::Result<()> {
         let position = self.insert_but_ignore_index(key, value)?;
 
         self.index.insert(key.to_vec(), position);
         Ok(())
     }
 
-    pub fn insert_but_ignore_index(
-        &mut self,
-        key: &ByteStr,
-        value: &ByteStr,
-    ) -> io::Result<u64> {
+    pub fn insert_but_ignore_index(&mut self, key: &ByteStr, value: &ByteStr) -> io::Result<u64> {
         let mut f = BufWriter::new(&mut self.f);
 
         let key_len = key.len();
@@ -199,18 +173,11 @@ impl KeyValueDB {
         Ok(current_position)
     }
 
-    pub fn update(
-        &mut self,
-        key: &ByteStr,
-        value: &ByteStr,
-    ) -> io::Result<()> {
+    pub fn update(&mut self, key: &ByteStr, value: &ByteStr) -> io::Result<()> {
         self.insert(key, value)
     }
 
-    pub fn delete(
-        &mut self,
-        key: &ByteStr
-    ) -> io::Result<()> {
+    pub fn delete(&mut self, key: &ByteStr) -> io::Result<()> {
         self.insert(key, b"")
     }
 }

@@ -39,36 +39,26 @@ fn main() {
     match &args.command {
         Some(Subcommands::Get { domain }) => {
             let db_location = util::get_db_location();
-            dbg!(&db_location);
             get(&domain, &db_location);
         }
         Some(Subcommands::Insert { domain }) => {
             let db_location = util::get_db_location();
-            dbg!(&db_location);
-            println!("Insert {} ", domain);
             insert(&db_location, domain);
         }
         Some(Subcommands::Delete { domain }) => {
             let db_location = util::get_db_location();
-            dbg!(&db_location);
-            println!("Delete -> {}", domain);
             delete(&db_location, domain);
         }
         Some(Subcommands::Update { domain }) => {
             let db_location = util::get_db_location();
-            dbg!(&db_location);
-            println!("update -> {}", domain);
             update(&db_location, domain);
         }
         Some(Subcommands::Init { db_path }) => {
             let path = PathBuf::from(db_path);
-            dbg!("init path is -> {}", &db_path);
             DbFile::init(path);
         }
         Some(Subcommands::List {}) => {
             let db_location = util::get_db_location();
-            dbg!(&db_location);
-            println!("list argument is supplied.");
             list(&db_location);
         }
         // if required arguments not supplied,
@@ -83,12 +73,9 @@ fn main() {
 
 fn get(domain: &String, db_location: &PathBuf) {
     let master_password = util::get_password(&String::from("Enter your master password: "));
-    dbg!(&master_password);
 
     // try to decrypt the db
     let f = db::decrypt_db(db_location, &master_password);
-
-    println!("Get {}", domain);
 
     let mut store = KeyValueDB::open_and_load(&f);
 
@@ -110,7 +97,6 @@ fn get(domain: &String, db_location: &PathBuf) {
 
 fn list(db_location: &PathBuf) {
     let master_password = util::get_password(&String::from("Enter your master password: "));
-    dbg!(&master_password);
 
     // try to decrypt the db
     let f = db::decrypt_db(db_location, &master_password);
@@ -146,7 +132,7 @@ fn insert(db_location: &PathBuf, domain: &String) {
 
     let mut res = String::new();
     res.push_str(&username);
-    res.push_str(" -> ");
+    res.push_str(" : ");
     res.push_str(&password);
 
     let mut store = KeyValueDB::open_and_load(&tmp_path);
@@ -201,7 +187,7 @@ fn update(db_location: &PathBuf, domain: &String) {
 
     let mut res = String::new();
     res.push_str(&username);
-    res.push_str(" -> ");
+    res.push_str(" : ");
     res.push_str(&password);
 
     let mut store = KeyValueDB::open_and_load(&tmp_path);

@@ -36,7 +36,6 @@ impl Password {
             let character: char = ascii_char_byte as char;
             pass.push(character);
         }
-        dbg!(&pass);
         let generated_password = Password::new(pass, pass_len);
         generated_password
     }

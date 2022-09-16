@@ -28,7 +28,7 @@ impl AesGcm256 {
         ciphertext
     }
 
-    pub fn decrypt(
+    pub fn decrypt_bytes(
         keyval: &String,
         nonce_val: String,
         ciphertext: Vec<u8>,

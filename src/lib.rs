@@ -69,7 +69,6 @@ impl KeyValueDB {
             panic!("data corruption");
         }
         let value = data.split_off(key_len as usize);
-        dbg!(&value);
         let key = data;
         Ok(KeyValuePair { key, value })
     }
@@ -82,14 +81,12 @@ impl KeyValueDB {
             // this becomes the value of the index.
             let position = f.seek(SeekFrom::Current(0))?;
 
-            //dbg!(&position);
 
             // read a record in the file at its current position
             let maybe_kv = KeyValueDB::process_record(&mut f);
 
             let kv = match maybe_kv {
                 Ok(kv) => {
-                    //dbg!(&kv);
                     kv
                 }
                 Err(err) => match err.kind() {
@@ -101,7 +98,6 @@ impl KeyValueDB {
             };
 
             self.index.insert(kv.key, position);
-            //dbg!(&self.index);
         }
 
         Ok(())
@@ -114,9 +110,10 @@ impl KeyValueDB {
             let kv: KeyValuePair = KeyValueDB::process_record(&mut f).unwrap();
 
             let s_key = String::from_utf8_lossy(key);
+            if s_key == " " {continue;}
             let s_val = String::from_utf8_lossy(&kv.value);
 
-            println!("key -> {:?} pos -> {:?}", s_key, s_val);
+            println!("Domain -> {:?} User-password pair -> {:?}", s_key, s_val);
         }
     }
 

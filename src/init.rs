@@ -46,7 +46,6 @@ pub fn init_db(config_path: PathBuf) {
     final_path.push(path);
     final_path.push(name);
 
-    dbg!(&final_path);
     util::create_file_with_data(&final_path, &String::from("\n"));
 }
 
@@ -70,7 +69,6 @@ impl Config {
     }
 
     fn create_config(path: &PathBuf, json_data: String) {
-        dbg!(path);
         util::create_file_with_data(path, &json_data);
     }
 }
@@ -84,7 +82,6 @@ impl DbFile {
     }
 
     pub fn init(mut db_location: PathBuf) {
-        dbg!("init function has run.");
 
         if db_location == PathBuf::from("~") {
             let default_location: PathBuf = util::get_homedir().join(DIR_NAME);
@@ -98,12 +95,10 @@ impl DbFile {
         }
 
         let mut pmanager_folder: PathBuf = util::get_homedir();
-        dbg!(&pmanager_folder);
 
         pmanager_folder.push(DIR_NAME);
 
         util::create_dir(&pmanager_folder);
-        dbg!(&pmanager_folder);
 
         let mut conf_name: PathBuf = PathBuf::new();
         conf_name.push(CONF_NAME);
@@ -124,7 +119,6 @@ impl DbFile {
         let mut config_path: PathBuf = PathBuf::new();
         config_path.push(config.path);
         config_path.push(config.name);
-        dbg!(&config_path);
 
         Config::create_config(&config_path, as_json);
 

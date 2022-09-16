@@ -17,7 +17,6 @@ pub struct Argon2 {
 impl Argon2 {
 
     pub fn derive_key(pass: Password) -> String {
-        dbg!(&pass.pass, &pass.len);
 
         let argon2 = Argon2 {
             variant: Variant::Argon2id,

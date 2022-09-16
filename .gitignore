@@ -1,0 +1,4 @@
+/target
+pmanager_config.json
+.vscode
+db.*

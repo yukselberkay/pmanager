@@ -4,6 +4,7 @@ mod args;
  * main.rs
 */
 mod db;
+mod xposed;
 mod init;
 mod kdf;
 mod password;

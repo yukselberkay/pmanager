@@ -104,6 +104,7 @@ impl KeyValueDB {
     }
 
     pub fn list(&mut self) {
+
         for (key, val) in &self.index {
             let mut f = BufReader::new(&mut self.f);
             f.seek(SeekFrom::Start(*val)).unwrap();
@@ -112,8 +113,9 @@ impl KeyValueDB {
             let s_key = String::from_utf8_lossy(key);
             if s_key == " " {continue;}
             let s_val = String::from_utf8_lossy(&kv.value);
+            if s_val == "" {continue;}
 
-            println!("Domain -> {:?} User-password pair -> {:?}", s_key, s_val);
+            println!("Domain : {:?} User-password pair : {:?}", s_key, s_val);
         }
     }
 

@@ -4,11 +4,11 @@ mod args;
  * main.rs
 */
 mod db;
-mod xposed;
 mod init;
 mod kdf;
 mod password;
 mod util;
+mod xposed;
 
 use std::env;
 use std::path::PathBuf;
@@ -61,7 +61,7 @@ fn main() {
         Some(Subcommands::List {}) => {
             let db_location = util::get_db_location();
             list(&db_location);
-        },
+        }
         Some(Subcommands::Leaked { domain }) => {
             let db_location = util::get_db_location();
             xposed::xposed(domain, &db_location);

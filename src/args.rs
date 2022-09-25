@@ -24,7 +24,7 @@ pub enum Subcommands {
         #[clap(short, long, action)]
         domain: String,
     },
-    /// Insert a Domain -> user:pass pair to database
+    /// Insert a user password pair associated with a domain to database
     Insert {
         #[clap(short, long, action)]
         /// Domain to be inserted
@@ -44,7 +44,9 @@ pub enum Subcommands {
     },
     /// Lists every record in the database
     List {},
-    /// Check if a password associated with your domain is leaked (uses xposedornot api)
+    /// Check if a password associated with your domain is leaked. This option uses xposedornot api.
+    /// This check achieved by hashing specified domain's password and sending the first 10 hexadecimal characters
+    /// to xposedornot service.
     Leaked {
         #[clap(short, long, action)]
         /// Input domain associated with password

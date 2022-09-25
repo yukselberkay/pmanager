@@ -84,7 +84,6 @@ pub fn get_db_location() -> PathBuf {
     conf_path.push(CONF_NAME);
     conf_path.set_extension(CONF_FILE_EXT);
 
-
     // make pathbuf printable.
     let display = conf_path.display();
 

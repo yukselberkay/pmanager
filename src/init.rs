@@ -132,13 +132,14 @@ impl DbFile {
 
         // after initializing the db encrypt it with a master password
         let password: String = util::get_password(&String::from(
-            "Please enter your master password. 
-            This password will be used to encrypt your database: ",
+            "Please enter your master password. This password will be used to encrypt your database: ",
         ));
         let password_verification: String =
             util::get_password(&String::from("Please confirm your password: "));
         if password != password_verification {
             eprintln!("Password mismatch. Initialization is aborted.");
+            let db_location = util::get_db_location();
+            util::remove_file_from_path(&db_location);
             return;
         }
 

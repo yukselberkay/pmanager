@@ -54,16 +54,17 @@ pub fn decrypt_db(db_location: &PathBuf, password: &String) -> PathBuf {
 
     let bytes = util::read_as_bytes(&db_location);
 
-    let decrypted_data = match AesGcm256::decrypt_bytes(&key_value, String::from("unique nonce"), bytes) {
-        Ok(decrypted_data) => decrypted_data,
-        Err(why) => {
-            eprintln!(
-                "Cannot decrypt the db with the given master password -> {}",
-                why
-            );
-            exit(1);
-        }
-    };
+    let decrypted_data =
+        match AesGcm256::decrypt_bytes(&key_value, String::from("unique nonce"), bytes) {
+            Ok(decrypted_data) => decrypted_data,
+            Err(why) => {
+                eprintln!(
+                    "Cannot decrypt the db with the given master password -> {}",
+                    why
+                );
+                exit(1);
+            }
+        };
 
     let mut tmp_path = env::temp_dir();
     tmp_path.push(TMP_DEC_FILE);

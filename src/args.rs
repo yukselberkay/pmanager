@@ -19,15 +19,15 @@ pub enum Subcommands {
         #[clap(short, long, action)]
         db_path: String,
     },
-    /// Get value by key from database
+    /// Get value by domain from database
     Get {
         #[clap(short, long, action)]
         domain: String,
     },
-    /// Insert a key value pair to database
+    /// Insert a user password pair associated with a domain to database
     Insert {
         #[clap(short, long, action)]
-        /// Key to be inserted
+        /// Domain to be inserted
         domain: String,
     },
     /// Delete a key value pair from database
@@ -39,11 +39,19 @@ pub enum Subcommands {
     /// Update a record from database
     Update {
         #[clap(short, long, action)]
-        /// The key to be updated associated with the record
+        /// The domain to be updated associated with the record
         domain: String,
     },
     /// Lists every record in the database
     List {},
+    /// Check if a password associated with your domain is leaked. This option uses xposedornot api.
+    /// This check achieved by hashing specified domain's password and sending the first 10 hexadecimal characters
+    /// to xposedornot service.
+    Leaked {
+        #[clap(short, long, action)]
+        /// Input domain associated with password
+        domain: String,
+    },
 }
 
 pub fn arg_parser() -> Cli {

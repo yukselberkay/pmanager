@@ -81,14 +81,11 @@ impl KeyValueDB {
             // this becomes the value of the index.
             let position = f.seek(SeekFrom::Current(0))?;
 
-
             // read a record in the file at its current position
             let maybe_kv = KeyValueDB::process_record(&mut f);
 
             let kv = match maybe_kv {
-                Ok(kv) => {
-                    kv
-                }
+                Ok(kv) => kv,
                 Err(err) => match err.kind() {
                     io::ErrorKind::UnexpectedEof => {
                         break;
@@ -110,10 +107,15 @@ impl KeyValueDB {
             let kv: KeyValuePair = KeyValueDB::process_record(&mut f).unwrap();
 
             let s_key = String::from_utf8_lossy(key);
-            if s_key == " " {continue;}
+            if s_key == " " {
+                continue;
+            }
             let s_val = String::from_utf8_lossy(&kv.value);
+            if s_val == "" {
+                continue;
+            }
 
-            println!("Domain -> {:?} User-password pair -> {:?}", s_key, s_val);
+            println!("Domain : {:?} User-password pair : {:?}", s_key, s_val);
         }
     }
 

@@ -15,14 +15,12 @@ pub struct Argon2 {
 }
 
 impl Argon2 {
-
     pub fn derive_key(pass: Password) -> String {
-
         let argon2 = Argon2 {
             variant: Variant::Argon2id,
             version: Version::Version13,
             mem_cost: 16000, // 16kb
-            time_cost: 20,  // 20 iterations
+            time_cost: 20,   // 20 iterations
             thread_mode: ThreadMode::Parallel,
             hash_length: 256,
         };

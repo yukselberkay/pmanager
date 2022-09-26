@@ -39,13 +39,12 @@ Download the binary file according to your current OS from [releases](https://gi
 ## Building from source
 ## Ubuntu & WSL
 ```bash
-# installs rust, skip this step if you already have rust in your system.
+sudo apt update -y && sudo apt install curl
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-sudo apt update -y && sudo apt install build-essential
+sudo apt install build-essential -y
 sudo apt install pkg-config libssl-dev -y
 git clone https://github.com/yukselberkay/pmanager
 cd pmanager
-# in the project directory
 make install
 
 ```
@@ -55,9 +54,8 @@ make install
 - Then install git for Windows. -> https://gitforwindows.org/
 ```powershell
 git clone https://github.com/yukselberkay/pmanager
-# binary file will be located inside "target/"
+cd pmanager
 cargo build --release
-
 ```
 
 ## Mac

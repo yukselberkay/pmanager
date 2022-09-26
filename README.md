@@ -44,6 +44,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo apt update -y && sudo apt install build-essential
 sudo apt install pkg-config libssl-dev -y
 git clone https://github.com/yukselberkay/pmanager
+cd pmanager
 # in the project directory
 make install
 

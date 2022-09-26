@@ -33,7 +33,7 @@ Store and retrieve your passwords from a secure offline database. Check if your 
   - This works by hashing your password with keccak-512 and sending the first 10 digits to [XposedOrNot](https://xposedornot.com/api_doc).
 
 ## Installation
-Download the binary file according to your current OS, and add the binary location to PATH environment variable. -> (releases link)
+Download the binary file according to your current OS from [releases](https://github.com/yukselberkay/pmanager/releases), and add the binary location to PATH environment variable.
 
 
 ## Building from source
@@ -60,7 +60,7 @@ cargo build --release
 ```
 
 ## Mac
-I have not been able to test pmanager on a Mac system. But you should be able to build it from source using "cargo build --release". 
+I have not been able to test pmanager on a Mac system. But you should be able to build it from the source ("cargo build --release"). since there are no OS specific functionality.
 
 ## Documentation
 **Firstly the database needs to be initialized before using pmanager.**

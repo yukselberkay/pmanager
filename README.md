@@ -42,7 +42,7 @@ Download the binary file according to your current OS from [releases](https://gi
 sudo apt update -y && sudo apt install curl
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo apt install build-essential -y
-sudo apt install pkg-config libssl-dev -y
+sudo apt install pkg-config libssl-dev git -y
 git clone https://github.com/yukselberkay/pmanager
 cd pmanager
 make install

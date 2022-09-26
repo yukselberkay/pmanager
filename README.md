@@ -33,6 +33,11 @@ Store and retrieve your passwords from a secure offline database. Check if your 
   - This works by hashing your password with keccak-512 and sending the first 10 digits to [XposedOrNot](https://xposedornot.com/api_doc).
 
 ## Installation
+Pmanager depends on "pkg-config" and "libssl-dev" packages on **ubuntu**. Simply install them with
+```bash
+sudo apt install pkg-config libssl-dev -y
+```
+
 Download the binary file according to your current OS from [releases](https://github.com/yukselberkay/pmanager/releases), and add the binary location to PATH environment variable.
 
 

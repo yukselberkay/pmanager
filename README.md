@@ -38,7 +38,7 @@ Pmanager depends on "pkg-config" and "libssl-dev" packages on **ubuntu**. Simply
 sudo apt install pkg-config libssl-dev -y
 ```
 
-Download the binary file according to your current OS from [releases](https://github.com/yukselberkay/pmanager/releases), and add the binary location to PATH environment variable.
+Download the binary file according to your current OS from [releases](https://github.com/yukselberkay/pmanager/releases), and add the binary location to PATH environment variable and you are good to go.
 
 
 ## Building from source

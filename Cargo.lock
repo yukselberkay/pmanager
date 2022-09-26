@@ -837,7 +837,7 @@ checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
 
 [[package]]
 name = "pmanager"
-version = "1.0.0"
+version = "0.9.5"
 dependencies = [
  "aes-gcm",
  "byteorder",

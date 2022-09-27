@@ -67,7 +67,7 @@ cargo build --release
 I have not been able to test pmanager on a Mac system. But you should be able to build it from the source ("cargo build --release"). since there are no OS specific functionality.
 
 ## Documentation
-**Firstly the database needs to be initialized before using pmanager.**
+**Firstly the database needs to be initialized using "init" command.**
 ### Init
 ```bash
 # Initializes the database in the home directory.
@@ -133,7 +133,7 @@ SUBCOMMANDS:
 - [ ] Unit tests
 - [ ] Automatic copying to clipboard and cleaning it.
 - [ ] Secure channel to share passwords in a network.
-- [ ] Browser extension which entegrates with offline database.
+- [ ] Browser extension which integrates with offline database.
 
 ## Support
 Bitcoin Address -> bc1qrmcmgasuz78d0g09rllh9upurnjwzpn07vmmyj

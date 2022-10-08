@@ -177,10 +177,10 @@ fn update(db_location: &PathBuf, domain: &String) {
 
     let mut prompt = String::from("Enter your password for ");
     prompt.push_str(&username);
-    prompt.push_str(" (type 'generate' to generate a random password)");
+    prompt.push_str(" (type 'g' to generate a random password)");
     let mut password = util::get_password(&prompt);
 
-    if password == "generate" {
+    if password == "g" {
         let prompt: String =
             String::from("Enter the length of the password you want to generate (8-128)");
         let size: usize = util::get_pass_len(&prompt);

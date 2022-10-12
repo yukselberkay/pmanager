@@ -44,10 +44,10 @@ Download the binary file according to your current OS from [releases](https://gi
 ## Building from source
 ## Ubuntu & WSL
 ```bash
-sudo apt update -y && sudo apt install curl
+sudo apt update -y && sudo apt install curl 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo apt install build-essential -y
-sudo apt install pkg-config libssl-dev git -y
+sudo apt install pkg-config libssl-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev git -y
 git clone https://github.com/yukselberkay/pmanager
 cd pmanager
 make install

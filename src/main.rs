@@ -3,6 +3,7 @@ mod args;
 /**
  * main.rs
 */
+mod clipboard;
 mod db;
 mod init;
 mod kdf;
@@ -32,6 +33,8 @@ const CONF_FILE_EXT: &str = "json";
 fn debug() {
     let dir = env::temp_dir();
     dbg!(dir);
+    let x = String::from("berkay -> asdasdas");
+    clipboard::clipboard_operation(&x);
 }
 
 fn main() {

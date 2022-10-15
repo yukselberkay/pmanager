@@ -4,7 +4,7 @@ Pmanager
 <div align="center">
 
 ![GitHub](https://img.shields.io/github/license/yukselberkay/pmanager?style=for-the-badge)
-![release](https://img.shields.io/badge/version-0.9.5-orange?style=for-the-badge)
+![release](https://img.shields.io/badge/version-0.9.6-orange?style=for-the-badge)
 
 <img src="images/logo.png" width="300">
 
@@ -81,7 +81,7 @@ pmanager insert --domain github.com
 
 ### Get
 ```bash
-# Get a specific record by domain.
+# Get a specific record by domain. This command will first copy username and then password to clipboard.
 pmanager get --domain github.com
 ```
 ### List
@@ -131,7 +131,7 @@ SUBCOMMANDS:
 
 ## Roadmap
 - [ ] Unit tests
-- [ ] Automatic copying to clipboard and cleaning it.
+- [x] Automatic copying to clipboard and cleaning it.
 - [ ] Secure channel to share passwords in a network.
 - [ ] Browser extension which integrates with offline database.
 

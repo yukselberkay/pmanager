@@ -96,9 +96,10 @@ fn get(domain: &String, db_location: &PathBuf) {
         Err(_) => panic!("An error occured while getting data from database."),
     };
 
-    let res_string = String::from_utf8_lossy(&result);
+    let res_string = String::from_utf8_lossy(&result).to_string();
 
-    println!("{}", res_string);
+    //println!("{}", res_string);
+    clipboard::clipboard_operation(&res_string);
 
     util::remove_file_from_path(&f);
 }

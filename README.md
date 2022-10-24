@@ -106,7 +106,7 @@ pmanager leaked --domain github.com
 ```
 
 ```
-pmanager 1.0.0
+pmanager 0.9.6
 
 USAGE:
     pmanager [OPTIONS] [SUBCOMMAND]
@@ -122,9 +122,7 @@ SUBCOMMANDS:
     help      Print this message or the help of the given subcommand(s)
     init      Initialize pmanager
     insert    Insert a user password pair associated with a domain to database
-    leaked    Check if a password associated with your domain is leaked. This option uses
-                  xposedornot api. This check achieved by hashing specified domain's password and
-                  sending the first 10 hexadecimal characters to xposedornot service
+    leaked    Check if a password associated with your domain is leaked
     list      Lists every record in the database
     update    Update a record from database
 ```

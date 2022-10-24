@@ -26,6 +26,7 @@ sha3 = "0.10.5"
 isahc = "1.7.2"
 arboard = "3.1.0"
 ctrlc = "3.2.3"
+clipboard-win = {version = "4.4.2"}
 
 [lib]
 name = "libkvdb"

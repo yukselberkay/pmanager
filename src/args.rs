@@ -44,9 +44,7 @@ pub enum Subcommands {
     },
     /// Lists every record in the database
     List {},
-    /// Check if a password associated with your domain is leaked. This option uses xposedornot api.
-    /// This check achieved by hashing specified domain's password and sending the first 10 hexadecimal characters
-    /// to xposedornot service.
+    /// Check if a password associated with your domain is leaked
     Leaked {
         #[clap(short, long, action)]
         /// Input domain associated with password

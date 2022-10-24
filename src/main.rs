@@ -34,7 +34,7 @@ fn debug() {
     let dir = env::temp_dir();
     dbg!(dir);
     let x = String::from("berkay -> asdasdas");
-    clipboard::clipboard_operation(&x);
+    clipboard::clipboard_operations(&x);
 }
 
 fn main() {
@@ -99,7 +99,7 @@ fn get(domain: &String, db_location: &PathBuf) {
     let res_string = String::from_utf8_lossy(&result).to_string();
 
     //println!("{}", res_string);
-    clipboard::clipboard_operation(&res_string);
+    clipboard::clipboard_operations(&res_string);
 
     util::remove_file_from_path(&f);
 }

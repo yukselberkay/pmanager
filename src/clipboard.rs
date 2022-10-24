@@ -1,38 +1,51 @@
-use std::time::Duration;
-use std::thread;
-
-use arboard::Clipboard;
 use ctrlc;
 
-const DURATION: u64 = 15;
+mod clipboards {
+    use std::thread;
+    use std::time::Duration;
 
-pub fn clipboard_operation(s: &String) {
-    let duration = Duration::from_secs(DURATION);
+    const DURATION: u64 = 10;
 
+    #[cfg(any(windows))]
+    pub fn clip(text_data: &str, text_type: &str) {
+        use clipboard_win::{formats, set_clipboard};
+
+        let duration = Duration::from_secs(DURATION);
+        set_clipboard(formats::Unicode, text_data).unwrap();
+        println!("Your {} is copied to the clipboard. You can paste it with (CTRL + v) It will be cleared from the clipboard in {} seconds", text_type, DURATION);
+        thread::sleep(duration);
+        //clear the OS level clipboard
+        set_clipboard(formats::Unicode, "").unwrap();
+    }
+
+    #[cfg(any(unix))]
+    pub fn clip(text_data: &str, text_type: &str) {
+        use arboard::Clipboard;
+
+        let duration = Duration::from_secs(DURATION);
+        let mut clipboard = Clipboard::new().unwrap();
+        clipboard
+            .set_text(text_data)
+            .expect("An error occured while copying data to clipboard.");
+        println!("Your {} is copied to the clipboard. You can paste it with (CTRL + v) It will be cleared from the clipboard in {} seconds", text_type, DURATION);
+        thread::sleep(duration);
+        clipboard.clear().unwrap();
+    }
+}
+
+pub fn clipboard_operations(user_pass_pair: &String) {
     ctrlc::set_handler(move || {
-        println!("Program will terminate automatically when the clipboard operations are finished.");
+        println!(
+            "Program will terminate automatically when the clipboard operations are finished."
+        );
     })
     .expect("An error occured during the setting of Ctrl-C handler");
 
-    let res = s.split(" -> ");
+    let res = user_pass_pair.split(" -> ");
     let pair: Vec<&str> = res.collect();
-
-
     let username = pair[0];
-    let mut clipboard = Clipboard::new().unwrap();
-    clipboard.set_text(username)
-        .expect("An error occured while putting data to clipboard.");
-    println!("Your username is copied to the clipboard. You can paste it with (CTRL + v) It will be cleared from the clipboard in {} seconds", DURATION);
-    thread::sleep(duration);
-    clipboard.clear().unwrap();
-
-
     let password = pair[1];
-    clipboard.set_text(password)
-        .expect("An error occured while putting data to clipboard.");
-    println!("Your password is copied to the clipboard. You can paste it with (CTRL + v) It will be cleared from the clipboard in {} seconds", DURATION);
-    thread::sleep(duration);
 
-    clipboard.clear().unwrap();
-
+    clipboards::clip(username, "username");
+    clipboards::clip(password, "password");
 }

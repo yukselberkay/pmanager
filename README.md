@@ -126,12 +126,5 @@ SUBCOMMANDS:
     list      Lists every record in the database
     update    Update a record from database
 ```
-
-## Roadmap
-- [ ] Unit tests
-- [x] Automatic copying to clipboard and cleaning it.
-- [ ] Secure channel to share passwords in a network.
-- [ ] Browser extension which integrates with offline database.
-
 ## Support
 Bitcoin Address -> bc1qrmcmgasuz78d0g09rllh9upurnjwzpn07vmmyj

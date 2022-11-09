@@ -4,7 +4,7 @@ Pmanager
 <div align="center">
 
 ![GitHub](https://img.shields.io/github/license/yukselberkay/pmanager?style=for-the-badge)
-![release](https://img.shields.io/badge/version-0.9.6-orange?style=for-the-badge)
+![release](https://img.shields.io/badge/version-0.9.7-orange?style=for-the-badge)
 
 <img src="images/logo.png" width="300">
 
@@ -106,7 +106,7 @@ pmanager leaked --domain github.com
 ```
 
 ```
-pmanager 0.9.6
+pmanager 0.9.7
 
 USAGE:
     pmanager [OPTIONS] [SUBCOMMAND]
@@ -117,8 +117,9 @@ OPTIONS:
     -V, --version    Print version information
 
 SUBCOMMANDS:
+    clip      Copy password to clipboard by domain
     delete    Delete a key value pair from database
-    get       Get value by domain from database
+    get       Copy username and then password to clipboard by domain
     help      Print this message or the help of the given subcommand(s)
     init      Initialize pmanager
     insert    Insert a user password pair associated with a domain to database

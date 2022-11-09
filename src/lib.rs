@@ -110,12 +110,16 @@ impl KeyValueDB {
             if s_key == " " {
                 continue;
             }
-            let s_val = String::from_utf8_lossy(&kv.value);
-            if s_val == "" {
+            let user_pass_pair = String::from_utf8_lossy(&kv.value);
+            if user_pass_pair == "" {
                 continue;
             }
 
-            println!("Domain : {:?} User-password pair : {:?}", s_key, s_val);
+            let res = user_pass_pair.split(" -> ");
+            let pair: Vec<&str> = res.collect();
+            let username = pair[0];
+
+            println!("{:?} -> {:?}", s_key, username);
         }
     }
 

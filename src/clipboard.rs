@@ -49,3 +49,18 @@ pub fn clipboard_operations(user_pass_pair: &String) {
     clipboards::clip(username, "username");
     clipboards::clip(password, "password");
 }
+
+pub fn clipboard_operations_password_only(user_pass_pair: &String) {
+    ctrlc::set_handler(move || {
+        println!(
+            "Program will terminate automatically when the clipboard operations are finished."
+        );
+    })
+    .expect("An error occured during the setting of Ctrl-C handler");
+
+    let res = user_pass_pair.split(" -> ");
+    let pair: Vec<&str> = res.collect();
+    let password = pair[1];
+
+    clipboards::clip(password, "password");
+}

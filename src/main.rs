@@ -45,6 +45,10 @@ fn main() {
             let db_location = util::get_db_location();
             get(&domain, &db_location);
         }
+        Some(Subcommands::Clip { domain }) => {
+            let db_location = util::get_db_location();
+            clip_password(&domain, &db_location);
+        }
         Some(Subcommands::Insert { domain }) => {
             let db_location = util::get_db_location();
             insert(&db_location, domain);
@@ -102,6 +106,30 @@ fn get(domain: &String, db_location: &PathBuf) {
     clipboard::clipboard_operations(&res_string);
 
     util::remove_file_from_path(&f);
+}
+
+fn clip_password(domain: &String, db_location: &PathBuf) {
+    let master_password = util::get_password(&String::from("Enter your master password: "));
+
+    // try to decrypt the db
+    let f = db::decrypt_db(db_location, &master_password);
+
+    let mut store = KeyValueDB::open_and_load(&f);
+
+    let result = match store.get(domain.as_bytes()) {
+        Ok(None) => {
+            eprintln!("Specified domain not found");
+            return;
+        }
+        Ok(result) => result.unwrap(),
+        Err(_) => panic!("An error occured while getting data from database."),
+    };
+
+    let res_string = String::from_utf8_lossy(&result).to_string();
+    
+    clipboard::clipboard_operations_password_only(&res_string);
+
+    util::remove_file_from_path(&f); 
 }
 
 fn list(db_location: &PathBuf) {

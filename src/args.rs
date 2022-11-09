@@ -19,7 +19,12 @@ pub enum Subcommands {
         #[clap(short, long, action)]
         db_path: String,
     },
-    /// Get value by domain from database
+    /// Copy password to clipboard by domain
+    Clip {
+        #[clap(short, long, action)]
+        domain: String,
+    },
+    /// Copy username and then password to clipboard by domain
     Get {
         #[clap(short, long, action)]
         domain: String,

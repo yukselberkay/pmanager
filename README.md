@@ -64,7 +64,11 @@ cargo build --release
 ```
 
 ## Mac
-I have not been able to test pmanager on a Mac system. But you should be able to build it from the source ("cargo build --release"). since there are no OS specific functionality.
+```bash
+git clone https://github.com/yukselberkay/pmanager
+cd pmanager
+cargo build --release
+```
 
 ## Documentation
 **Firstly the database needs to be initialized using "init" command.**

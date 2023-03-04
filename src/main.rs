@@ -17,6 +17,7 @@ use std::path::PathBuf;
 use args::Subcommands;
 use libkvdb::KeyValueDB;
 
+use crate::clipboard::clipboards;
 use crate::init::DbFile;
 use crate::password::Password;
 
@@ -177,6 +178,8 @@ fn insert(db_location: &PathBuf, domain: &String) {
         .expect("Unable to insert to database");
 
     util::update_encrypted_database_entries(db_location, &master_password, &tmp_path);
+
+    clipboards::clip(password.as_str(), "password");
 }
 
 fn delete(db_location: &PathBuf, domain: &String) {

@@ -1,6 +1,6 @@
 use ctrlc;
 
-mod clipboards {
+pub mod clipboards {
     use std::thread;
     use std::time::Duration;
 

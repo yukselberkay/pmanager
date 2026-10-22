@@ -123,12 +123,22 @@ fn list() -> Result<()> {
 
 fn insert(domain: &str) -> Result<()> {
     let mut vault = open_vault(true)?;
+    if vault.contains(domain) {
+        return Err(format!(
+            "An entry for {} already exists. Use 'pmanager update --domain {}' to change it.",
+            domain, domain
+        )
+        .into());
+    }
 
     let username = util::get_input(&format!("Please enter your username for {}", domain))?;
     let password = read_entry_password(&format!(
         "Enter your password for {} (Type 'g' to generate a random password): ",
         username
     ))?;
+    if password.is_empty() {
+        return Err("The password cannot be empty, nothing was saved.".into());
+    }
 
     let entry = Entry {
         username,
@@ -144,12 +154,12 @@ fn insert(domain: &str) -> Result<()> {
 
 fn delete(domain: &str) -> Result<()> {
     let mut vault = open_vault(true)?;
+    if !vault.contains(domain) {
+        return Err(not_found(domain));
+    }
 
-    let choice = util::get_input(&format!(
-        "Are you sure you want to delete entry -> {} (yes/no)",
-        domain
-    ))?;
-    if choice == "no" {
+    if !util::confirm(&format!("Are you sure you want to delete entry -> {}", domain))? {
+        println!("Nothing was deleted.");
         return Ok(());
     }
 
@@ -161,6 +171,13 @@ fn delete(domain: &str) -> Result<()> {
 
 fn update(domain: &str) -> Result<()> {
     let mut vault = open_vault(true)?;
+    if !vault.contains(domain) {
+        return Err(format!(
+            "Specified domain not found: {}. Use 'pmanager insert --domain {}' to add it.",
+            domain, domain
+        )
+        .into());
+    }
 
     let username = util::get_input(&format!("Please enter your username for {}", domain))?;
     let password = read_entry_password(&format!(
@@ -173,11 +190,8 @@ fn update(domain: &str) -> Result<()> {
         password: password.to_string(),
     };
 
-    let choice = util::get_input(&format!(
-        "Are you sure you want to update -> {} (yes/no)",
-        domain
-    ))?;
-    if choice == "no" {
+    if !util::confirm(&format!("Are you sure you want to update -> {}", domain))? {
+        println!("Nothing was updated.");
         return Ok(());
     }
 

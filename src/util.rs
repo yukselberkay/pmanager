@@ -160,6 +160,14 @@ pub fn get_pass_len(prompt: &str) -> Result<usize> {
     Ok(input)
 }
 
+/// Asks a yes/no question. Anything other than an explicit yes is a no.
+pub fn confirm(prompt: &str) -> Result<bool> {
+    let choice = get_input(&format!("{} (yes/no)", prompt))?;
+    let choice = choice.trim().to_lowercase();
+
+    Ok(choice == "yes" || choice == "y")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

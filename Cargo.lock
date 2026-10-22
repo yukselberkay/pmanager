@@ -1073,7 +1073,7 @@ checksum = "f6b464fbc74e149a392436b17d523f769e057cb6877f6a5c4618bc6f11800548"
 
 [[package]]
 name = "pmanager"
-version = "0.9.7"
+version = "0.10.0"
 dependencies = [
  "aes-gcm",
  "arboard",

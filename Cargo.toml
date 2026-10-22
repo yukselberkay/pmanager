@@ -1,6 +1,6 @@
 [package]
 name = "pmanager"
-version = "0.9.7"
+version = "0.10.0"
 edition = "2021"
 # std::fs::File::lock
 rust-version = "1.89"

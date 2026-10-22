@@ -154,6 +154,16 @@ pub fn get_input(prompt: &str) -> Result<String> {
     Ok(input)
 }
 
+/// Like `get_input`, but pressing enter keeps `default`.
+pub fn get_input_with_default(prompt: &str, default: &str) -> Result<String> {
+    let input: String = Input::new()
+        .with_prompt(prompt)
+        .default(default.to_string())
+        .interact_text()?;
+
+    Ok(input)
+}
+
 pub fn get_pass_len(prompt: &str) -> Result<usize> {
     let input: usize = Input::new().with_prompt(prompt).interact_text()?;
 

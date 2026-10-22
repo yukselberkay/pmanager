@@ -171,23 +171,28 @@ fn delete(domain: &str) -> Result<()> {
 
 fn update(domain: &str) -> Result<()> {
     let mut vault = open_vault(true)?;
-    if !vault.contains(domain) {
-        return Err(format!(
+    let current = vault.get(domain)?.ok_or_else(|| {
+        format!(
             "Specified domain not found: {}. Use 'pmanager insert --domain {}' to add it.",
             domain, domain
         )
-        .into());
-    }
+    })?;
 
-    let username = util::get_input(&format!("Please enter your username for {}", domain))?;
+    let username = util::get_input_with_default(
+        &format!("Please enter your username for {}", domain),
+        &current.username,
+    )?;
     let password = read_entry_password(&format!(
-        "Enter your password for {} (type 'g' to generate a random password)",
+        "Enter your password for {} (type 'g' to generate a random password, or press enter to keep the current one): ",
         username
     ))?;
 
     let entry = Entry {
         username,
-        password: password.to_string(),
+        password: match password.is_empty() {
+            true => current.password.clone(),
+            false => password.to_string(),
+        },
     };
 
     if !util::confirm(&format!("Are you sure you want to update -> {}", domain))? {

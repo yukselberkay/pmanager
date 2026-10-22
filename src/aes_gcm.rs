@@ -1,48 +1,48 @@
-use aes_gcm::aead::{Aead, NewAead};
 /**
  * aes_gcm.rs
  * Handles the encryption and the decryption of data using aes-gcm256.
 */
+use aes_gcm::aead::{Aead, KeyInit, Payload};
 use aes_gcm::{Aes256Gcm, Key, Nonce};
+use zeroize::Zeroizing;
 
-pub struct AesGcm256 {
-    pub key: String,
-    pub nonce: String,
-}
+pub const KEY_LEN: usize = 32;
+// 96 bits, must be unique for every encryption under the same key.
+pub const NONCE_LEN: usize = 12;
+pub const TAG_LEN: usize = 16;
+
+pub struct AesGcm256;
 
 impl AesGcm256 {
+    /// Encrypts `data`, authenticating `aad` along with it.
     pub fn encrypt_bytes(
-        keyval: &String,
-        nonce: String,
-        data: Vec<u8>,
+        key: &[u8; KEY_LEN],
+        nonce: &[u8; NONCE_LEN],
+        aad: &[u8],
+        data: &[u8],
     ) -> Result<Vec<u8>, aes_gcm::Error> {
-        //key must be 32 bytes.
-        let key = Key::from_slice(keyval.as_bytes());
-        let cipher = Aes256Gcm::new(key);
+        let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(key));
 
-        // 96 bits, unique per value
-        let nonce = Nonce::from_slice(nonce.as_bytes());
-
-        let ciphertext = cipher.encrypt(nonce, data.as_ref());
-
-        ciphertext
+        cipher.encrypt(Nonce::from_slice(nonce), Payload { msg: data, aad })
     }
 
+    /// Decrypts `ciphertext`, failing if it or `aad` were tampered with.
     pub fn decrypt_bytes(
-        keyval: &String,
-        nonce_val: String,
-        ciphertext: Vec<u8>,
-    ) -> Result<Vec<u8>, aes_gcm::Error> {
-        //key must be 32 bytes.
+        key: &[u8; KEY_LEN],
+        nonce: &[u8; NONCE_LEN],
+        aad: &[u8],
+        ciphertext: &[u8],
+    ) -> Result<Zeroizing<Vec<u8>>, aes_gcm::Error> {
+        let cipher = Aes256Gcm::new(Key::<Aes256Gcm>::from_slice(key));
 
-        let key = Key::from_slice(keyval.as_bytes());
-        let cipher = Aes256Gcm::new(key);
+        let plaintext = cipher.decrypt(
+            Nonce::from_slice(nonce),
+            Payload {
+                msg: ciphertext,
+                aad,
+            },
+        )?;
 
-        // 96 bits, unique per value
-        let nonce = Nonce::from_slice(nonce_val.as_bytes());
-
-        let plaintext = cipher.decrypt(nonce, ciphertext.as_ref());
-
-        plaintext
+        Ok(Zeroizing::new(plaintext))
     }
 }

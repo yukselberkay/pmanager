@@ -1,5 +1,8 @@
 use ctrlc;
 
+use crate::db::Entry;
+use crate::Result;
+
 pub mod clipboards {
     use std::thread;
     use std::time::Duration;
@@ -33,34 +36,31 @@ pub mod clipboards {
     }
 }
 
-pub fn clipboard_operations(user_pass_pair: &String) {
+fn set_ctrlc_handler() {
     ctrlc::set_handler(move || {
         println!(
             "Program will terminate automatically when the clipboard operations are finished."
         );
     })
     .expect("An error occured during the setting of Ctrl-C handler");
-
-    let res = user_pass_pair.split(" -> ");
-    let pair: Vec<&str> = res.collect();
-    let username = pair[0];
-    let password = pair[1];
-
-    clipboards::clip(username, "username");
-    clipboards::clip(password, "password");
 }
 
-pub fn clipboard_operations_password_only(user_pass_pair: &String) {
-    ctrlc::set_handler(move || {
-        println!(
-            "Program will terminate automatically when the clipboard operations are finished."
-        );
-    })
-    .expect("An error occured during the setting of Ctrl-C handler");
+pub fn clip(text_data: &str, text_type: &str) -> Result<()> {
+    clipboards::clip(text_data, text_type);
+    Ok(())
+}
 
-    let res = user_pass_pair.split(" -> ");
-    let pair: Vec<&str> = res.collect();
-    let password = pair[1];
+pub fn clipboard_operations(entry: &Entry) -> Result<()> {
+    set_ctrlc_handler();
 
-    clipboards::clip(password, "password");
+    clipboards::clip(&entry.username, "username");
+    clipboards::clip(&entry.password, "password");
+    Ok(())
+}
+
+pub fn clipboard_operations_password_only(entry: &Entry) -> Result<()> {
+    set_ctrlc_handler();
+
+    clipboards::clip(&entry.password, "password");
+    Ok(())
 }

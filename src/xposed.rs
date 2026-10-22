@@ -6,50 +6,12 @@ use isahc::prelude::*;
 use serde_json::Value;
 use sha3::{Digest, Keccak512};
 
-use std::process::exit;
-use std::{fmt::Write as FmtWrite, path::PathBuf};
+use std::fmt::Write as FmtWrite;
 
-use crate::db;
-use crate::util;
-use libkvdb::KeyValueDB;
+use crate::Result;
 
-pub fn get_password_by_domain(domain: &String, db_location: &PathBuf) -> String {
-    let master_password = util::get_password(&String::from("Enter your master password: "));
-
-    // try to decrypt the db
-    let f = db::decrypt_db(db_location, &master_password);
-
-    let mut store = KeyValueDB::open_and_load(&f);
-
-    let result = match store.get(domain.as_bytes()) {
-        Ok(None) => {
-            eprintln!("Specified domain not found");
-            exit(1);
-        }
-        Ok(result) => result.unwrap(),
-        Err(_) => panic!("An error occured while getting data from database."),
-    };
-
-    let res_string = String::from_utf8_lossy(&result);
-
-    let res = res_string.split(" -> ");
-
-    let pair: Vec<&str> = res.collect();
-
-    let password = pair[1];
-    let pass = String::from(password);
-
-    println!("{}", res_string);
-
-    util::remove_file_from_path(&f);
-
-    pass
-}
-
-pub fn xposed(domain: &String, db_location: &PathBuf) {
+pub fn xposed(password: &str) -> Result<()> {
     let mut api_endpoint = String::from("https://passwords.xposedornot.com/api/v1/pass/anon/");
-
-    let password = get_password_by_domain(&domain, db_location);
 
     let mut hasher = Keccak512::new();
     hasher.update(password);
@@ -75,7 +37,7 @@ pub fn xposed(domain: &String, db_location: &PathBuf) {
         Some(_) => json_data.unwrap(),
         None => {
             eprintln!("Password not found in xposedornot data breaches.");
-            return;
+            return Ok(());
         }
     };
 
@@ -91,4 +53,6 @@ pub fn xposed(domain: &String, db_location: &PathBuf) {
             count
         );
     }
+
+    Ok(())
 }

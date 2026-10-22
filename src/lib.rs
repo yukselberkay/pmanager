@@ -147,29 +147,6 @@ impl<S: Read + Write + Seek> KeyValueDB<S> {
         Ok(())
     }
 
-    pub fn list(&mut self) {
-        for (key, val) in &self.index {
-            let mut f = BufReader::new(&mut self.f);
-            f.seek(SeekFrom::Start(*val)).unwrap();
-            let kv: KeyValuePair = Self::process_record(&mut f).unwrap();
-
-            let s_key = String::from_utf8_lossy(key);
-            if s_key == " " {
-                continue;
-            }
-            let user_pass_pair = String::from_utf8_lossy(&kv.value);
-            if user_pass_pair == "" {
-                continue;
-            }
-
-            let res = user_pass_pair.split(" -> ");
-            let pair: Vec<&str> = res.collect();
-            let username = pair[0];
-
-            println!("{:?} -> {:?}", s_key, username);
-        }
-    }
-
     /// Every live key in the store, in no particular order.
     pub fn keys(&self) -> impl Iterator<Item = &ByteString> {
         self.index.keys()

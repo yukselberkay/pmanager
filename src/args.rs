@@ -53,6 +53,8 @@ pub enum Subcommands {
         /// Input domain associated with password
         domain: String,
     },
+    /// Upgrade a database created by pmanager 0.9.7 or older to the current, more secure format
+    Migrate {},
 }
 
 pub fn arg_parser() -> Cli {

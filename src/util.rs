@@ -1,151 +1,188 @@
-use ::dialoguer::Input;
-use dirs;
-use rpassword;
 /**
  * util.rs
  * Utility functions to avoid code reuse.
  */
-use std::fs::{create_dir_all, read, remove_file, File};
+use std::fs::{self, DirBuilder, File, OpenOptions};
 use std::io::prelude::*;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-use crate::{db, DbFile, CONF_FILE_EXT, CONF_NAME, DIR_NAME};
+use ::dialoguer::Input;
+use rand::rngs::OsRng;
+use rand::RngCore;
+use zeroize::Zeroizing;
 
-pub fn create_file_with_data(path: &PathBuf, data: &String) {
-    let prefix = path.parent().unwrap();
-    create_dir_all(prefix).unwrap();
+use crate::{DbFile, Result, CONF_FILE_EXT, CONF_NAME, DIR_NAME};
 
-    // display is a helper struct for safely printing paths
-    let display = path.display();
+/// Creates a new file that is only accessible by the current user.
+/// Fails if the file already exists, so it never follows a planted symlink.
+pub fn create_private_file(path: &Path) -> std::io::Result<File> {
+    let mut options = OpenOptions::new();
+    options.write(true).create_new(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    options.open(path)
+}
 
-    // open a file
-    let mut file = match File::create(&path) {
-        Err(why) => panic!("Could not create {}: {}", display, why),
-        Ok(file) => file,
-    };
+/// Creates a directory (and its parents) that is only accessible by the current user.
+/// Permissions of directories that already exist are left untouched.
+pub fn create_private_dir(path: &Path) -> std::io::Result<()> {
+    let mut builder = DirBuilder::new();
+    builder.recursive(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::DirBuilderExt;
+        builder.mode(0o700);
+    }
+    builder.create(path)
+}
 
-    // write to file
-    match file.write_all(data.as_bytes()) {
-        Err(why) => panic!("Could not write to {}: {}", display, why),
-        Ok(_) => println!("Successfully wrote data to {}", display),
+/// Restricts an existing file or directory we own to the current user.
+pub fn restrict_permissions(path: &Path) -> std::io::Result<()> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mode = if path.is_dir() { 0o700 } else { 0o600 };
+        fs::set_permissions(path, fs::Permissions::from_mode(mode))?;
+    }
+    #[cfg(not(unix))]
+    let _ = path;
+    Ok(())
+}
+
+/// Replaces the contents of `path` with `data` without ever leaving a
+/// partially written file behind: the data is written to a temporary file in
+/// the same directory, flushed to disk and then renamed over the target.
+pub fn write_file_atomic(path: &Path, data: &[u8]) -> Result<()> {
+    // write next to the real file if the path is a symlink, instead of replacing the link.
+    let target = fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
+    let dir = parent_dir(&target);
+    let file_name = target
+        .file_name()
+        .ok_or_else(|| format!("Invalid file path {}", target.display()))?
+        .to_string_lossy();
+
+    let tmp_path = dir.join(format!(".{}.tmp-{:016x}", file_name, OsRng.next_u64()));
+    let write_result = (|| -> std::io::Result<()> {
+        let mut file = create_private_file(&tmp_path)?;
+        file.write_all(data)?;
+        file.sync_all()?;
+        fs::rename(&tmp_path, &target)
+    })();
+
+    if let Err(why) = write_result {
+        let _ = fs::remove_file(&tmp_path);
+        return Err(format!("Could not write {}: {}", target.display(), why).into());
+    }
+
+    // make the rename itself durable.
+    #[cfg(unix)]
+    if let Ok(d) = File::open(&dir) {
+        let _ = d.sync_all();
+    }
+
+    Ok(())
+}
+
+pub fn parent_dir(path: &Path) -> PathBuf {
+    match path.parent() {
+        Some(parent) if !parent.as_os_str().is_empty() => parent.to_path_buf(),
+        _ => PathBuf::from("."),
     }
 }
 
-pub fn create_empty_file(path: &PathBuf) -> File {
-    let display = path.display();
-
-    let file = match File::create(&path) {
-        Err(why) => panic!("Cannot create file at {}: {}", display, why),
-        Ok(file) => file,
-    };
-
-    file
+pub fn get_homedir() -> Result<PathBuf> {
+    dirs::home_dir().ok_or_else(|| "Could not get home directory".into())
 }
 
-pub fn write_bytes_to_file(mut file: File, data: &Vec<u8>) {
-    match file.write_all(data) {
-        Err(why) => panic!("Cannot write data to file: {}", why),
-        Ok(_) => (),
-    }
+pub fn get_config_dir() -> Result<PathBuf> {
+    Ok(get_homedir()?.join(DIR_NAME))
 }
 
-pub fn read_as_bytes(path: &PathBuf) -> Vec<u8> {
-    let display = path.display();
-
-    let bytes = match read(&path) {
-        Err(why) => panic!("Cannot read {}: {}", why, display),
-        Ok(bytes) => bytes,
-    };
-
-    bytes
+pub fn get_config_path() -> Result<PathBuf> {
+    let mut conf_path = get_config_dir()?;
+    conf_path.push(CONF_NAME);
+    conf_path.set_extension(CONF_FILE_EXT);
+    Ok(conf_path)
 }
 
-pub fn create_dir(dir_path: &PathBuf) {
-    match create_dir_all(&dir_path) {
-        Err(why) => panic!("Could not create directories {:?}: {}", &dir_path, why),
-        Ok(_) => println!("Directories created successfully : {:?}.", dir_path),
-    };
-}
+pub fn write_config(db_file: &DbFile) -> Result<()> {
+    let config_dir = get_config_dir()?;
+    create_private_dir(&config_dir)?;
+    restrict_permissions(&config_dir)?;
 
-pub fn get_homedir() -> PathBuf {
-    let homedir = dirs::home_dir().expect("Could not get home directory");
-
-    homedir
+    let as_json = serde_json::to_string(db_file)?;
+    write_file_atomic(&get_config_path()?, as_json.as_bytes())
 }
 
 // parses pmanager config to get the db file location
-pub fn get_db_location() -> PathBuf {
-    let mut conf_path = PathBuf::new();
+pub fn get_db_location() -> Result<PathBuf> {
+    let conf_path = get_config_path()?;
 
-    let home_dir = get_homedir();
-
-    conf_path.push(home_dir);
-    conf_path.push(DIR_NAME);
-    conf_path.push(CONF_NAME);
-    conf_path.set_extension(CONF_FILE_EXT);
-
-    // make pathbuf printable.
-    let display = conf_path.display();
-
-    // parse the configuration and get the db location
-    let mut s = String::new();
-    let mut file = match File::open(&conf_path) {
-        Err(why) => panic!("Could not open : {} {}", display, why),
-        Ok(file) => file,
+    let s = match fs::read_to_string(&conf_path) {
+        Ok(s) => s,
+        Err(why) if why.kind() == std::io::ErrorKind::NotFound => {
+            return Err(
+                "pmanager is not initialized. Run 'pmanager init --db-path ~' first.".into(),
+            )
+        }
+        Err(why) => return Err(format!("Could not read {}: {}", conf_path.display(), why).into()),
     };
 
-    match file.read_to_string(&mut s) {
-        Err(why) => panic!("Could not read as string: {} {}", display, why),
-        Ok(file) => file,
-    };
-
-    let d: DbFile = serde_json::from_str(&s).unwrap();
+    let d: DbFile = serde_json::from_str(&s)
+        .map_err(|why| format!("Could not parse {}: {}", conf_path.display(), why))?;
 
     let mut db_location: PathBuf = PathBuf::new();
     db_location.push(d.path);
     db_location.push(d.name);
 
-    db_location
+    Ok(db_location)
 }
 
-pub fn get_password(prompt: &String) -> String {
-    let password =
-        rpassword::prompt_password(prompt).expect("An error occured while getting password input");
+pub fn get_password(prompt: &str) -> Result<Zeroizing<String>> {
+    let password = rpassword::prompt_password(prompt)
+        .map_err(|why| format!("An error occured while getting password input: {}", why))?;
 
-    password
+    Ok(Zeroizing::new(password))
 }
 
-pub fn remove_file_from_path(path: &PathBuf) {
-    remove_file(path).expect("Failed to remove the file.");
+pub fn get_input(prompt: &str) -> Result<String> {
+    let input: String = Input::new().with_prompt(prompt).interact_text()?;
+
+    Ok(input)
 }
 
-pub fn get_input(prompt: &String) -> String {
-    let input: String = Input::new().with_prompt(prompt).interact_text().unwrap();
+pub fn get_pass_len(prompt: &str) -> Result<usize> {
+    let input: usize = Input::new().with_prompt(prompt).interact_text()?;
 
-    input
+    Ok(input)
 }
 
-pub fn get_pass_len(prompt: &String) -> usize {
-    let input: usize = Input::new().with_prompt(prompt).interact_text().unwrap();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    input
-}
+    #[test]
+    fn atomic_write_replaces_content_and_is_private() {
+        let dir = std::env::temp_dir().join(format!("pmanager-test-{:016x}", OsRng.next_u64()));
+        create_private_dir(&dir).unwrap();
+        let file = dir.join("data");
 
-pub fn update_encrypted_database_entries(
-    db_location: &PathBuf,
-    master_password: &String,
-    tmp_path: &PathBuf,
-) {
-    //remove previous database file
-    remove_file_from_path(db_location);
+        write_file_atomic(&file, b"first").unwrap();
+        write_file_atomic(&file, b"second").unwrap();
+        assert_eq!(fs::read(&file).unwrap(), b"second");
+        // no temporary files are left behind.
+        assert_eq!(fs::read_dir(&dir).unwrap().count(), 1);
 
-    let f = create_empty_file(db_location);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = fs::metadata(&file).unwrap().permissions().mode();
+            assert_eq!(mode & 0o777, 0o600);
+        }
 
-    let encrypted_tmp_file = db::encrypt_db(&tmp_path, &master_password);
-
-    let encrypted_data = read_as_bytes(&encrypted_tmp_file);
-
-    write_bytes_to_file(f, &encrypted_data);
-
-    remove_file_from_path(&tmp_path);
+        fs::remove_dir_all(&dir).unwrap();
+    }
 }

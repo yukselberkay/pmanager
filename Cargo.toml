@@ -2,6 +2,8 @@
 name = "pmanager"
 version = "0.9.7"
 edition = "2021"
+# std::fs::File::lock
+rust-version = "1.89"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -9,11 +11,11 @@ edition = "2021"
 rand = "0.8.5"
 rust-argon2 = "1.0.0"
 rand_hc = "0.3.1"
-aes-gcm = "0.9.4"
+aes-gcm = "0.10.3"
+zeroize = { version = "1.5", features = ["derive"] }
+# only used to read databases created by pmanager <= 0.9.7
 md5 = "0.7.0"
 dirs = "4.0.0"
-config = "0.13.1"
-toml = "0.5.9"
 serde = "1.0.142"
 serde_json = "1.0.83"
 serde_derive = "1.0.142"

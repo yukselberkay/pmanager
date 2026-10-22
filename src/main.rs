@@ -7,226 +7,182 @@ mod clipboard;
 mod db;
 mod init;
 mod kdf;
+mod migrate;
 mod password;
 mod util;
 mod xposed;
 
-use std::path::PathBuf;
+use std::process::exit;
 
 use args::Subcommands;
-use libkvdb::KeyValueDB;
+use zeroize::Zeroizing;
 
-use crate::clipboard::clipboards;
+use crate::db::{Entry, Format, Vault, LEGACY_FORMAT_MESSAGE};
 use crate::init::DbFile;
-use crate::password::Password;
 
 const DIR_NAME: &str = ".pmanager";
 const CONF_NAME: &str = "pmanager_config";
-
-const TMP_ENC_FILE: &str = ".db_pmanager.enc";
-const TMP_DEC_FILE: &str = ".db_pmanager.dec";
 
 const DB_NAME: &str = "db.pmanager";
 
 const CONF_FILE_EXT: &str = "json";
 
+pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
 fn main() {
     let args = args::arg_parser();
 
-    match &args.command {
-        Subcommands::Get { domain } => {
-            let db_location = util::get_db_location();
-            get(&domain, &db_location);
-        }
-        Subcommands::Clip { domain } => {
-            let db_location = util::get_db_location();
-            clip_password(&domain, &db_location);
-        }
-        Subcommands::Insert { domain } => {
-            let db_location = util::get_db_location();
-            insert(&db_location, domain);
-        }
-        Subcommands::Delete { domain } => {
-            let db_location = util::get_db_location();
-            delete(&db_location, domain);
-        }
-        Subcommands::Update { domain } => {
-            let db_location = util::get_db_location();
-            update(&db_location, domain);
-        }
-        Subcommands::Init { db_path } => {
-            let path = PathBuf::from(db_path);
-            DbFile::init(path);
-        }
-        Subcommands::List {} => {
-            let db_location = util::get_db_location();
-            list(&db_location);
-        }
-        Subcommands::Leaked { domain } => {
-            let db_location = util::get_db_location();
-            xposed::xposed(domain, &db_location);
-        }
-    }
-}
-
-fn get(domain: &String, db_location: &PathBuf) {
-    let master_password = util::get_password(&String::from("Enter your master password: "));
-
-    // try to decrypt the db
-    let f = db::decrypt_db(db_location, &master_password);
-
-    let mut store = KeyValueDB::open_and_load(&f);
-
-    let result = match store.get(domain.as_bytes()) {
-        Ok(None) => {
-            eprintln!("Specified domain not found");
-            return;
-        }
-        Ok(result) => result.unwrap(),
-        Err(_) => panic!("An error occured while getting data from database."),
+    let result = match &args.command {
+        Subcommands::Get { domain } => get(domain),
+        Subcommands::Clip { domain } => clip_password(domain),
+        Subcommands::Insert { domain } => insert(domain),
+        Subcommands::Delete { domain } => delete(domain),
+        Subcommands::Update { domain } => update(domain),
+        Subcommands::Init { db_path } => init::init(db_path),
+        Subcommands::List {} => list(),
+        Subcommands::Leaked { domain } => leaked(domain),
+        Subcommands::Migrate {} => migrate::migrate(),
     };
 
-    let res_string = String::from_utf8_lossy(&result).to_string();
-
-    //println!("{}", res_string);
-    clipboard::clipboard_operations(&res_string);
-
-    util::remove_file_from_path(&f);
+    if let Err(why) = result {
+        eprintln!("Error: {}", why);
+        exit(1);
+    }
 }
 
-fn clip_password(domain: &String, db_location: &PathBuf) {
-    let master_password = util::get_password(&String::from("Enter your master password: "));
-
-    // try to decrypt the db
-    let f = db::decrypt_db(db_location, &master_password);
-
-    let mut store = KeyValueDB::open_and_load(&f);
-
-    let result = match store.get(domain.as_bytes()) {
-        Ok(None) => {
-            eprintln!("Specified domain not found");
-            return;
-        }
-        Ok(result) => result.unwrap(),
-        Err(_) => panic!("An error occured while getting data from database."),
+/// Asks for the master password and decrypts the database. When `for_writing`
+/// is set, the database is locked against other pmanager processes until the
+/// returned vault is dropped.
+fn open_vault(for_writing: bool) -> Result<Vault> {
+    let db_location = util::get_db_location()?;
+    let lock = match for_writing {
+        true => Some(db::lock(&db_location)?),
+        false => None,
     };
 
-    let res_string = String::from_utf8_lossy(&result).to_string();
-    
-    clipboard::clipboard_operations_password_only(&res_string);
-
-    util::remove_file_from_path(&f); 
-}
-
-fn list(db_location: &PathBuf) {
-    let master_password = util::get_password(&String::from("Enter your master password: "));
-
-    // try to decrypt the db
-    let f = db::decrypt_db(db_location, &master_password);
-
-    let mut store = KeyValueDB::open_and_load(&f);
-
-    store.list();
-    util::remove_file_from_path(&f);
-}
-
-fn insert(db_location: &PathBuf, domain: &String) {
-    let master_password = util::get_password(&String::from("Enter your master password: "));
-    let tmp_path = db::decrypt_db(db_location, &master_password);
-
-    let mut prompt = String::from("Please enter your username for ");
-    prompt.push_str(&domain);
-    let username = util::get_input(&prompt);
-
-    let mut prompt = String::from("Enter your password for ");
-    prompt.push_str(&username);
-    prompt.push_str(" (Type 'g' to generate a random password): ");
-    let mut password = util::get_password(&prompt);
-
-    if password == "g" {
-        let prompt: String =
-            String::from("Enter the length of the password you want to generate (8-128) ");
-        let size: usize = util::get_pass_len(&prompt);
-        let random_pass = Password::generate(size);
-        password = random_pass.pass;
+    // do not ask for the password if the database can not be opened anyway.
+    if db::detect_format(&db::read_db_file(&db_location)?)? == Format::Legacy {
+        return Err(LEGACY_FORMAT_MESSAGE.into());
     }
 
-    let mut res = String::new();
-    res.push_str(&username);
-    res.push_str(" -> ");
-    res.push_str(&password);
-
-    let mut store = KeyValueDB::open_and_load(&tmp_path);
-
-    store
-        .insert(domain.as_bytes(), res.as_bytes())
-        .expect("Unable to insert to database");
-
-    util::update_encrypted_database_entries(db_location, &master_password, &tmp_path);
-
-    clipboards::clip(password.as_str(), "password");
+    let master_password = util::get_password("Enter your master password: ")?;
+    Vault::open(&db_location, &master_password, lock)
 }
 
-fn delete(db_location: &PathBuf, domain: &String) {
-    let master_password = util::get_password(&String::from("Enter your master password: "));
-    let tmp_path = db::decrypt_db(db_location, &master_password);
+fn not_found(domain: &str) -> Box<dyn std::error::Error> {
+    format!("Specified domain not found: {}", domain).into()
+}
 
-    let mut store = KeyValueDB::open_and_load(&tmp_path);
+/// Looks up an entry. The decrypted database is wiped from memory before returning.
+fn find_entry(domain: &str) -> Result<Entry> {
+    let mut vault = open_vault(false)?;
+    vault.get(domain)?.ok_or_else(|| not_found(domain))
+}
 
-    let mut prompt = String::from("Are you sure you want to delete entry -> ");
-    prompt.push_str(&domain);
-    prompt.push_str(" (yes/no)");
+/// Asks for the password of an entry, 'g' generates a random one.
+fn read_entry_password(prompt: &str) -> Result<Zeroizing<String>> {
+    let password = util::get_password(prompt)?;
 
-    let choice = util::get_input(&prompt);
+    if password.as_str() == "g" {
+        let size: usize =
+            util::get_pass_len("Enter the length of the password you want to generate (8-128) ")?;
+        return Ok(Zeroizing::new(password::Password::generate(size).pass));
+    }
+    Ok(password)
+}
+
+fn get(domain: &str) -> Result<()> {
+    let entry = find_entry(domain)?;
+    clipboard::clipboard_operations(&entry)
+}
+
+fn clip_password(domain: &str) -> Result<()> {
+    let entry = find_entry(domain)?;
+    clipboard::clipboard_operations_password_only(&entry)
+}
+
+fn leaked(domain: &str) -> Result<()> {
+    let entry = find_entry(domain)?;
+    xposed::xposed(&entry.password)
+}
+
+fn list() -> Result<()> {
+    let mut vault = open_vault(false)?;
+
+    let domains = vault.domains();
+    if domains.is_empty() {
+        println!("The database is empty.");
+    }
+    for domain in domains {
+        if let Some(entry) = vault.get(&domain)? {
+            println!("{:?} -> {:?}", domain, entry.username);
+        }
+    }
+    Ok(())
+}
+
+fn insert(domain: &str) -> Result<()> {
+    let mut vault = open_vault(true)?;
+
+    let username = util::get_input(&format!("Please enter your username for {}", domain))?;
+    let password = read_entry_password(&format!(
+        "Enter your password for {} (Type 'g' to generate a random password): ",
+        username
+    ))?;
+
+    let entry = Entry {
+        username,
+        password: password.to_string(),
+    };
+    vault.insert(domain, &entry)?;
+    vault.save()?;
+    drop(vault);
+
+    println!("Entry for {} is saved.", domain);
+    clipboard::clip(&entry.password, "password")
+}
+
+fn delete(domain: &str) -> Result<()> {
+    let mut vault = open_vault(true)?;
+
+    let choice = util::get_input(&format!(
+        "Are you sure you want to delete entry -> {} (yes/no)",
+        domain
+    ))?;
     if choice == "no" {
-        return;
+        return Ok(());
     }
 
-    store.delete(domain.as_bytes()).unwrap();
-
-    util::update_encrypted_database_entries(db_location, &master_password, &tmp_path);
+    vault.remove(domain)?;
+    vault.save()?;
+    println!("Entry for {} is deleted.", domain);
+    Ok(())
 }
 
-fn update(db_location: &PathBuf, domain: &String) {
-    let master_password = util::get_password(&String::from("Enter your master password: "));
-    let tmp_path = db::decrypt_db(db_location, &master_password);
+fn update(domain: &str) -> Result<()> {
+    let mut vault = open_vault(true)?;
 
-    let mut prompt = String::from("Please enter your username for ");
-    prompt.push_str(&domain);
-    let username = util::get_input(&prompt);
+    let username = util::get_input(&format!("Please enter your username for {}", domain))?;
+    let password = read_entry_password(&format!(
+        "Enter your password for {} (type 'g' to generate a random password)",
+        username
+    ))?;
 
-    let mut prompt = String::from("Enter your password for ");
-    prompt.push_str(&username);
-    prompt.push_str(" (type 'g' to generate a random password)");
-    let mut password = util::get_password(&prompt);
+    let entry = Entry {
+        username,
+        password: password.to_string(),
+    };
 
-    if password == "g" {
-        let prompt: String =
-            String::from("Enter the length of the password you want to generate (8-128)");
-        let size: usize = util::get_pass_len(&prompt);
-        let random_pass = Password::generate(size);
-        password = random_pass.pass;
-    }
-
-    let mut res = String::new();
-    res.push_str(&username);
-    res.push_str(" -> ");
-    res.push_str(&password);
-
-    let mut store = KeyValueDB::open_and_load(&tmp_path);
-
-    let mut prompt = String::from("Are you sure you want to update -> ");
-    prompt.push_str(&domain);
-    prompt.push_str(" (yes/no)");
-
-    let choice = util::get_input(&prompt);
+    let choice = util::get_input(&format!(
+        "Are you sure you want to update -> {} (yes/no)",
+        domain
+    ))?;
     if choice == "no" {
-        return;
+        return Ok(());
     }
 
-    store
-        .update(domain.as_bytes(), res.as_bytes())
-        .expect("Unable to insert to directory");
-
-    util::update_encrypted_database_entries(db_location, &master_password, &tmp_path);
+    vault.insert(domain, &entry)?;
+    vault.save()?;
+    println!("Entry for {} is updated.", domain);
+    Ok(())
 }

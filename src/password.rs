@@ -2,41 +2,43 @@
  * password.rs
  * Password related functions.
 */
-use rand::{Rng, SeedableRng};
-use rand_hc::Hc128Rng;
+use rand::rngs::OsRng;
+use rand::Rng;
+use zeroize::Zeroizing;
 
-pub struct Password {
-    pub pass: String,
-    pub len: usize,
+pub const MIN_GENERATED_LEN: usize = 8;
+pub const MAX_GENERATED_LEN: usize = 128;
+
+const ASCII_CHARS: &[u8] =
+    b"!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz}{|~";
+
+/// Generates a random password using the operating system's CSPRNG.
+pub fn generate(pass_len: usize) -> Zeroizing<String> {
+    let pass_len = pass_len.clamp(MIN_GENERATED_LEN, MAX_GENERATED_LEN);
+
+    let mut pass = Zeroizing::new(String::with_capacity(pass_len));
+    for _ in 0..pass_len {
+        let rnd_chr = OsRng.gen_range(0..ASCII_CHARS.len());
+        pass.push(ASCII_CHARS[rnd_chr] as char);
+    }
+    pass
 }
 
-impl Password {
-    pub fn new(pass: String, len: usize) -> Password {
-        Password {
-            pass: String::from(pass),
-            len: len,
-        }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashSet;
+
+    #[test]
+    fn charset_has_no_duplicates() {
+        let unique: HashSet<_> = ASCII_CHARS.iter().collect();
+        assert_eq!(unique.len(), ASCII_CHARS.len());
     }
 
-    pub fn generate(mut pass_len: usize) -> Password {
-        if pass_len < 8 {
-            pass_len = 8;
-        }
-        if pass_len > 128 {
-            pass_len = 128;
-        }
-
-        let ascii_chars: &str = "!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKL1MNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz}{|~";
-        let mut rng = Hc128Rng::from_entropy();
-
-        let mut pass: String = String::new();
-        for _ in 0..pass_len {
-            let rnd_chr = rng.gen_range(0..ascii_chars.len());
-            let ascii_char_byte: u8 = ascii_chars.as_bytes()[rnd_chr as usize];
-            let character: char = ascii_char_byte as char;
-            pass.push(character);
-        }
-        let generated_password = Password::new(pass, pass_len);
-        generated_password
+    #[test]
+    fn length_is_clamped() {
+        assert_eq!(generate(1).len(), MIN_GENERATED_LEN);
+        assert_eq!(generate(32).len(), 32);
+        assert_eq!(generate(10_000).len(), MAX_GENERATED_LEN);
     }
 }

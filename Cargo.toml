@@ -10,7 +10,6 @@ rust-version = "1.89"
 [dependencies]
 rand = "0.8.5"
 rust-argon2 = "1.0.0"
-rand_hc = "0.3.1"
 aes-gcm = "0.10.3"
 zeroize = { version = "1.5", features = ["derive"] }
 # only used to read databases created by pmanager <= 0.9.7

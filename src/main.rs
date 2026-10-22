@@ -84,9 +84,12 @@ fn read_entry_password(prompt: &str) -> Result<Zeroizing<String>> {
     let password = util::get_password(prompt)?;
 
     if password.as_str() == "g" {
-        let size: usize =
-            util::get_pass_len("Enter the length of the password you want to generate (8-128) ")?;
-        return Ok(Zeroizing::new(password::Password::generate(size).pass));
+        let size: usize = util::get_pass_len(&format!(
+            "Enter the length of the password you want to generate ({}-{})",
+            password::MIN_GENERATED_LEN,
+            password::MAX_GENERATED_LEN
+        ))?;
+        return Ok(password::generate(size));
     }
     Ok(password)
 }

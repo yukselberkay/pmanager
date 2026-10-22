@@ -11,6 +11,7 @@ use rand::rngs::OsRng;
 use rand::RngCore;
 use zeroize::Zeroizing;
 
+use crate::password::{MAX_GENERATED_LEN, MIN_GENERATED_LEN};
 use crate::{DbFile, Result, CONF_FILE_EXT, CONF_NAME, DIR_NAME};
 
 /// Creates a new file that is only accessible by the current user.
@@ -182,7 +183,19 @@ pub fn get_input_with_default(prompt: &str, default: &str) -> Result<String> {
 }
 
 pub fn get_pass_len(prompt: &str) -> Result<usize> {
-    let input: usize = Input::new().with_prompt(prompt).interact_text()?;
+    let input: usize = Input::new()
+        .with_prompt(prompt)
+        .validate_with(|len: &usize| -> std::result::Result<(), String> {
+            if (MIN_GENERATED_LEN..=MAX_GENERATED_LEN).contains(len) {
+                Ok(())
+            } else {
+                Err(format!(
+                    "Length must be between {} and {}",
+                    MIN_GENERATED_LEN, MAX_GENERATED_LEN
+                ))
+            }
+        })
+        .interact_text()?;
 
     Ok(input)
 }

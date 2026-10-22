@@ -97,6 +97,23 @@ pub fn get_homedir() -> Result<PathBuf> {
     dirs::home_dir().ok_or_else(|| "Could not get home directory".into())
 }
 
+/// Turns the path given to `init` into an absolute path.
+pub fn expand_path(path: &str) -> Result<PathBuf> {
+    let expanded = if path == "~" {
+        get_homedir()?
+    } else if let Some(rest) = path.strip_prefix("~/") {
+        get_homedir()?.join(rest)
+    } else {
+        PathBuf::from(path)
+    };
+
+    if expanded.is_absolute() {
+        Ok(expanded)
+    } else {
+        Ok(std::env::current_dir()?.join(expanded))
+    }
+}
+
 pub fn get_config_dir() -> Result<PathBuf> {
     Ok(get_homedir()?.join(DIR_NAME))
 }
@@ -181,6 +198,18 @@ pub fn confirm(prompt: &str) -> Result<bool> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn expand_path_resolves_home_and_relative_paths() {
+        let home = get_homedir().unwrap();
+        assert_eq!(expand_path("~").unwrap(), home);
+        assert_eq!(expand_path("~/vault").unwrap(), home.join("vault"));
+        assert_eq!(expand_path("/abs/path").unwrap(), PathBuf::from("/abs/path"));
+        assert_eq!(
+            expand_path("rel").unwrap(),
+            std::env::current_dir().unwrap().join("rel")
+        );
+    }
 
     #[test]
     fn atomic_write_replaces_content_and_is_private() {

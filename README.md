@@ -151,5 +151,3 @@ SUBCOMMANDS:
     migrate   Upgrade a database created by pmanager 0.9.7 or older to the current, more secure format
     update    Update a record from database
 ```
-## Support
-Bitcoin Address -> bc1qrmcmgasuz78d0g09rllh9upurnjwzpn07vmmyj

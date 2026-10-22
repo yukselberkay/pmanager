@@ -11,7 +11,6 @@ mod password;
 mod util;
 mod xposed;
 
-use std::env;
 use std::path::PathBuf;
 
 use args::Subcommands;
@@ -31,56 +30,42 @@ const DB_NAME: &str = "db.pmanager";
 
 const CONF_FILE_EXT: &str = "json";
 
-fn debug() {
-    let dir = env::temp_dir();
-    dbg!(dir);
-    let x = String::from("berkay -> asdasdas");
-    clipboard::clipboard_operations(&x);
-}
-
 fn main() {
     let args = args::arg_parser();
 
     match &args.command {
-        Some(Subcommands::Get { domain }) => {
+        Subcommands::Get { domain } => {
             let db_location = util::get_db_location();
             get(&domain, &db_location);
         }
-        Some(Subcommands::Clip { domain }) => {
+        Subcommands::Clip { domain } => {
             let db_location = util::get_db_location();
             clip_password(&domain, &db_location);
         }
-        Some(Subcommands::Insert { domain }) => {
+        Subcommands::Insert { domain } => {
             let db_location = util::get_db_location();
             insert(&db_location, domain);
         }
-        Some(Subcommands::Delete { domain }) => {
+        Subcommands::Delete { domain } => {
             let db_location = util::get_db_location();
             delete(&db_location, domain);
         }
-        Some(Subcommands::Update { domain }) => {
+        Subcommands::Update { domain } => {
             let db_location = util::get_db_location();
             update(&db_location, domain);
         }
-        Some(Subcommands::Init { db_path }) => {
+        Subcommands::Init { db_path } => {
             let path = PathBuf::from(db_path);
             DbFile::init(path);
         }
-        Some(Subcommands::List {}) => {
+        Subcommands::List {} => {
             let db_location = util::get_db_location();
             list(&db_location);
         }
-        Some(Subcommands::Leaked { domain }) => {
+        Subcommands::Leaked { domain } => {
             let db_location = util::get_db_location();
             xposed::xposed(domain, &db_location);
         }
-        // if required arguments not supplied,
-        //prints out generated help message automatically
-        None => {}
-    }
-
-    if args.debug == true {
-        debug();
     }
 }
 

@@ -4,12 +4,10 @@
  */
 use clap::{Parser, Subcommand};
 #[derive(Parser)]
-#[clap(author, version, about, long_about = None)]
+#[clap(author, version, about, long_about = None, arg_required_else_help = true)]
 pub struct Cli {
-    #[clap(short, long, action)]
-    pub debug: bool,
     #[clap(subcommand)]
-    pub command: Option<Subcommands>, // not required argument
+    pub command: Subcommands,
 }
 
 #[derive(Subcommand)]
